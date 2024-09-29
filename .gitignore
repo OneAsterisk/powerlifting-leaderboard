@@ -1,5 +1,8 @@
 node_modules
 
+# Personal
+ToDo.md
+
 # Output
 .output
 .vercel
