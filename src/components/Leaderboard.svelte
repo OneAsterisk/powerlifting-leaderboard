@@ -112,7 +112,7 @@
 
 	:global(.mdc-data-table) {
 		width: 100%;
-		border: 1px solid #e0e0e0;
+		border: 1px solid #5b5656;
 		border-radius: 4px;
 		overflow: hidden;
 	}
@@ -120,6 +120,7 @@
 	:global(.mdc-data-table__header-cell) {
 		font-weight: bold;
 		text-transform: uppercase;
+		background-color: #121212;
 	}
 
 	:global(.mdc-data-table__cell) {
