@@ -1,0 +1,62 @@
+// First, import Bootstrap functions and variables
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+
+/* Dark Theme Color Palette */
+$dark-bg-primary: #121212;
+$dark-bg-secondary: #1e1e1e;
+$dark-bg-tertiary: #2c2c2c;
+
+$dark-text-primary: #ffffff;
+$dark-text-secondary: #b3b3b3;
+
+$dark-border: #333333;
+
+// Accent colors
+$dark-accent-blue: #4dabf7;
+$dark-accent-green: #69db7c;
+$dark-accent-red: #ff6b6b;
+$dark-accent-yellow: #ffd43b;
+$dark-accent-purple: #da77f2;
+
+// Table-specific colors
+$dark-table-header: #2c2c2c;
+$dark-table-row-even: #302f2f;
+$dark-table-row-odd: #313131;
+$dark-table-row-hover: #2a2a2a;
+
+/* Map Custom Colors to Bootstrap Theme Colors */
+$primary: $dark-bg-primary;
+$secondary: $dark-bg-secondary;
+
+// Then, import the rest of Bootstrap
+@import 'bootstrap/scss/bootstrap';
+
+// Custom styles
+body {
+	background-color: $dark-bg-primary;
+	color: $dark-text-primary;
+}
+
+.table {
+	color: $dark-text-primary;
+	background-color: $dark-bg-secondary;
+
+	th {
+		background-color: $dark-table-header;
+	}
+
+	tr:nth-child(even) {
+		background-color: $dark-table-row-even;
+	}
+
+	tr:nth-child(odd) {
+		background-color: $dark-table-row-odd;
+	}
+
+	tr:hover {
+		background-color: $dark-table-row-hover;
+	}
+}
+
+// Add more custom styles as needed
