@@ -3,7 +3,7 @@
 	import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 	import { onDestroy } from 'svelte';
 	import { Table, Pagination, PaginationItem, PaginationLink } from '@sveltestrap/sveltestrap';
-
+	import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
 	let lifts: any[] = [];
 	let currentPage = 1;
 	let itemsPerPage = 5;
@@ -69,6 +69,10 @@
 			</tbody>
 		</Table>
 	</div>
+
+	<script lang="ts">
+		import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
+	</script>
 
 	<Pagination aria-label="Leaderboard navigation" class="justify-content-center mt-3">
 		<PaginationItem class={currentPage === 1 ? 'disabled' : ''}>

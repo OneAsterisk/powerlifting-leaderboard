@@ -23,18 +23,7 @@
 	let selectedUniversity: string = '';
 	let dotsScore: number = 0;
 	let bodyWeight: number = 0;
-	//Dots Variables
-	const menA = 0.000001093;
-	const menB = 0.0007391293;
-	const menC = 0.1918759221;
-	const menD = 24.0900756;
-	const menE = 307.75076;
 
-	const womenA = -0.0000010706;
-	const womenB = 0.0005158568;
-	const womenC = -0.1126655495;
-	const womenD = 13.6175032;
-	const womenE = -57.96288;
 	function Calculate_DOTS(bodyWeight: number, weightLifted: number, gender: string) {
 		weightLifted = weightLifted / 2.205;
 		bodyWeight = bodyWeight / 2.205;
@@ -137,7 +126,7 @@
 					</InputGroup>
 				</FormGroup>
 			</Col>
-			<Col sm={12} md={3}>
+			<Col sm={12} md={4}>
 				<FormGroup>
 					<InputGroup>
 						<InputGroupText class="custom-label">Gender</InputGroupText>
@@ -149,7 +138,7 @@
 					</InputGroup>
 				</FormGroup>
 			</Col>
-			<Col sm={12} md={3}>
+			<Col sm={12} md={4}>
 				<FormGroup>
 					<InputGroup>
 						<InputGroupText class="custom-label">Age</InputGroupText>
@@ -157,7 +146,7 @@
 					</InputGroup>
 				</FormGroup>
 			</Col>
-			<Col sm={12} md={3}>
+			<Col sm={12} md={4}>
 				<FormGroup>
 					<InputGroup>
 						<InputGroupText class="custom-label">Body Weight</InputGroupText>
@@ -187,6 +176,18 @@
 		padding: 0.375rem 0.75rem;
 	}
 
+	@media (max-width: 1080px) {
+		:global(.custom-label) {
+			width: 75px;
+			font-size: 0.75em;
+		}
+	}
+	@media (max-width: 767px) {
+		:global(.custom-label) {
+			width: 75px;
+			font-size: 0.75em;
+		}
+	}
 	:global(.input-group .form-control) {
 		flex: 1;
 	}

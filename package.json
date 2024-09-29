@@ -12,10 +12,14 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
-		"test:unit": "vitest"
+		"test:unit": "vitest",
+		"prepare": "npm run smui-theme-light && npm run smui-theme-dark",
+		"smui-theme-light": "smui-theme compile static/smui.css -i src/theme",
+		"smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.28.1",
+		"@smui/data-table": "^7.0.0",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-node": "^5.2.5",
 		"@sveltejs/adapter-static": "^3.0.5",
@@ -28,6 +32,7 @@
 		"globals": "^15.0.0",
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.1.2",
+		"smui-theme": "^7.0.0",
 		"svelte": "^4.2.19",
 		"svelte-check": "^4.0.0",
 		"svelte-preprocess": "^6.0.3",
@@ -38,9 +43,13 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@smui/button": "^7.0.0",
+		"@smui/common": "^7.0.0",
+		"@smui/icon-button": "^7.0.0",
+		"@smui/select": "^7.0.0",
 		"@sveltestrap/sveltestrap": "^6.2.7",
 		"bootstrap": "^5.3.3",
 		"firebase": "^10.13.2",
-		"sass": "^1.79.4"
+		"sass": "^1.63.6"
 	}
 }
