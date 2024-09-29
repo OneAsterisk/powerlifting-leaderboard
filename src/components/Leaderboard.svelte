@@ -1,118 +1,134 @@
 <script lang="ts">
-	import { db } from '$lib/firebase';
-	import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
-	import { onDestroy } from 'svelte';
-	import { Table, Pagination, PaginationItem, PaginationLink } from '@sveltestrap/sveltestrap';
-	import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
-	let lifts: any[] = [];
-	let currentPage = 1;
-	let itemsPerPage = 5;
+	import { onMount, onDestroy } from 'svelte';
+	import { getTopLifts } from '../dbFunctions';
+	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
+	import IconButton from '@smui/icon-button';
 
-	const q = query(collection(db, 'lifts'), orderBy('total', 'desc'), limit(50));
+	type Lift = {
+		rank: number;
+		displayName: string;
+		selectedUniversity: string;
+		dotsScore: number;
+		total: number;
+		squat: number;
+		bench: number;
+		deadlift: number;
+		formattedDate: string;
+	};
 
-	const unsubscribe = onSnapshot(q, (querySnapshot) => {
-		lifts = querySnapshot.docs.map((doc, index) => {
-			const data = doc.data();
-			return {
-				...data,
-				rank: index + 1,
-				formattedDate: formatDate(data.timestamp)
-			};
+	let topLifts: Lift[] = [];
+	let unsubscribe: () => void;
+	let sort: keyof Lift = 'rank';
+	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
+
+	onMount(() => {
+		unsubscribe = getTopLifts((updatedLifts) => {
+			topLifts = updatedLifts;
+			handleSort();
 		});
 	});
 
 	onDestroy(() => {
-		unsubscribe();
+		if (unsubscribe) {
+			unsubscribe();
+		}
 	});
 
-	function formatDate(timestamp: { toDate: () => Date }) {
-		if (!timestamp) return '';
-		const date = timestamp.toDate();
-		return date.toLocaleDateString();
+	function handleSort() {
+		topLifts.sort((a, b) => {
+			const [aVal, bVal] = [a[sort], b[sort]][
+				sortDirection === 'ascending' ? 'slice' : 'reverse'
+			]();
+			if (typeof aVal === 'string' && typeof bVal === 'string') {
+				return aVal.localeCompare(bVal);
+			}
+			return Number(aVal) - Number(bVal);
+		});
+		topLifts = topLifts;
 	}
 
-	$: totalPages = Math.ceil(lifts.length / itemsPerPage);
-	$: paginatedLifts = lifts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-	function goToPage(page: number) {
-		currentPage = page;
-	}
+	const columns: { key: keyof Lift; label: string; numeric?: boolean; sortable?: boolean }[] = [
+		{ key: 'rank', label: 'Rank', numeric: true },
+		{ key: 'displayName', label: 'Name' },
+		{ key: 'selectedUniversity', label: 'University' },
+		{ key: 'dotsScore', label: 'Dots' },
+		{ key: 'total', label: 'Total', numeric: true },
+		{ key: 'squat', label: 'Squat', numeric: true },
+		{ key: 'bench', label: 'Bench', numeric: true },
+		{ key: 'deadlift', label: 'Deadlift', numeric: true },
+		{ key: 'formattedDate', label: 'Date', sortable: false }
+	];
 </script>
 
 <div class="leaderboard-container">
-	<h2 class="mb-4">Powerlifting Leaderboard</h2>
-	<div class="table-responsive">
-		<Table striped hover size="sm" class="leaderboard-table">
-			<thead>
-				<tr>
-					<th>Rank</th>
-					<th>Name</th>
-					<th class="d-none d-md-table-cell">Squat</th>
-					<th class="d-none d-md-table-cell">Bench</th>
-					<th class="d-none d-md-table-cell">Deadlift</th>
-					<th>Total</th>
-					<th class="d-none d-lg-table-cell">Date</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each paginatedLifts as lift}
-					<tr>
-						<td>{lift.rank}</td>
-						<td>{lift.displayName}</td>
-						<td class="d-none d-md-table-cell">{lift.squat}</td>
-						<td class="d-none d-md-table-cell">{lift.bench}</td>
-						<td class="d-none d-md-table-cell">{lift.deadlift}</td>
-						<td>{lift.total}</td>
-						<td class="d-none d-lg-table-cell">{lift.formattedDate}</td>
-					</tr>
+	<h1>Leaderboard</h1>
+	<DataTable
+		sortable
+		bind:sort
+		bind:sortDirection
+		on:SMUIDataTable:sorted={handleSort}
+		table$aria-label="Powerlifting Leaderboard"
+		style="width: 100%;"
+	>
+		<Head>
+			<Row>
+				{#each columns as column}
+					<Cell numeric={column.numeric} columnId={column.key} sortable={column.sortable !== false}>
+						{#if column.numeric}
+							<IconButton class="material-icons">arrow_upward</IconButton>
+						{/if}
+						<Label>{column.label}</Label>
+						{#if !column.numeric && column.sortable !== false}
+							<IconButton class="material-icons">arrow_upward</IconButton>
+						{/if}
+					</Cell>
 				{/each}
-			</tbody>
-		</Table>
-	</div>
-
-	<script lang="ts">
-		import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
-	</script>
-
-	<Pagination aria-label="Leaderboard navigation" class="justify-content-center mt-3">
-		<PaginationItem class={currentPage === 1 ? 'disabled' : ''}>
-			<PaginationLink previous on:click={() => goToPage(currentPage - 1)} />
-		</PaginationItem>
-		{#each Array(totalPages) as _, i}
-			<PaginationItem class={currentPage === i + 1 ? 'active' : ''}>
-				<PaginationLink on:click={() => goToPage(i + 1)}>
-					{i + 1}
-				</PaginationLink>
-			</PaginationItem>
-		{/each}
-		<PaginationItem class={currentPage === totalPages ? 'disabled' : ''}>
-			<PaginationLink next on:click={() => goToPage(currentPage + 1)} />
-		</PaginationItem>
-	</Pagination>
+			</Row>
+		</Head>
+		<Body>
+			{#each topLifts as lift (lift.rank)}
+				<Row>
+					{#each columns as column}
+						<Cell numeric={column.numeric}>{lift[column.key]}</Cell>
+					{/each}
+				</Row>
+			{/each}
+		</Body>
+	</DataTable>
 </div>
 
 <style>
 	.leaderboard-container {
-		max-width: 100%;
-		overflow-x: auto;
-		padding: 0 15px;
+		width: 90%;
+		max-width: 85%;
+		margin: 0 auto;
+		padding: 20px;
 	}
 
-	.leaderboard-table {
-		min-width: 300px;
+	h1 {
+		margin-bottom: 20px;
+		text-align: center;
 	}
 
-	@media (max-width: 767px) {
-		.leaderboard-table th,
-		.leaderboard-table td {
-			font-size: 0.875rem;
-		}
+	:global(.mdc-data-table) {
+		width: 100%;
+		border: 1px solid #e0e0e0;
+		border-radius: 4px;
+		overflow: hidden;
 	}
 
-	@media (max-width: 575px) {
-		.leaderboard-table th,
-		.leaderboard-table td {
-			font-size: 0.75rem;
-		}
+	:global(.mdc-data-table__header-cell) {
+		font-weight: bold;
+		text-transform: uppercase;
+	}
+
+	:global(.mdc-data-table__cell) {
+		padding: 12px 16px;
+	}
+
+	:global(.material-icons) {
+		font-size: 18px;
+		vertical-align: middle;
+		margin-left: 4px;
 	}
 </style>

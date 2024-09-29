@@ -29,6 +29,8 @@ $dark-table-row-hover: #2a2a2a;
 $primary: $dark-bg-primary;
 $secondary: $dark-bg-secondary;
 
+@import '../../theme/smui-theme';
+
 // Then, import the rest of Bootstrap
 @import 'bootstrap/scss/bootstrap';
 

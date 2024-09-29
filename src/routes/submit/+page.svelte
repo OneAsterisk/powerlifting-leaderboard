@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { user } from '../../stores/userStore';
-	import { db } from '$lib/firebase';
-	import { collection, addDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 	import {
 		Form,
 		FormGroup,
@@ -14,82 +12,57 @@
 		Col
 	} from '@sveltestrap/sveltestrap';
 	import UniversitySelector from '../../components/UniversitySelector.svelte';
+	import { onMount } from 'svelte';
 
+	import { getUserInfo, submitLift } from '../../dbFunctions';
+	import type { UserInfo } from '../../dbFunctions'; // Make sure to export this interface in dbFunctions.ts
+
+	let userInfo: UserInfo | null = null;
+	let gender = '';
+	let selectedUniversity: string = '';
 	let squat: number = 0;
 	let bench: number = 0;
 	let deadlift: number = 0;
-	let gender: string = '';
-	let age: number = 0;
-	let selectedUniversity: string = '';
-	let dotsScore: number = 0;
 	let bodyWeight: number = 0;
+	let age: number = 0;
 
-	function Calculate_DOTS(bodyWeight: number, weightLifted: number, gender: string) {
-		weightLifted = weightLifted / 2.205;
-		bodyWeight = bodyWeight / 2.205;
-		const maleCoeff = [-307.75076, 24.0900756, -0.1918759221, 0.0007391293, -0.000001093];
-		const femaleCoeff = [-57.96288, 13.6175032, -0.1126655495, 0.0005158568, -0.0000010706];
-		const isFemale = gender === 'Female' ? true : false;
-		let denominator = isFemale ? femaleCoeff[0] : maleCoeff[0];
-		let coeff = isFemale ? femaleCoeff : maleCoeff;
-		let maxbw = isFemale ? 150 : 210;
-		let bw = Math.min(Math.max(bodyWeight, 40), maxbw);
-
-		for (let i = 1; i < coeff.length; i++) {
-			denominator += coeff[i] * Math.pow(bw, i);
-		}
-
-		let score = (500 / denominator) * weightLifted;
-		return score.toFixed(2);
-	}
-	const submitLifts = async () => {
+	onMount(async () => {
 		if ($user) {
 			try {
-				const total: number = bench + squat + deadlift;
-				let dotsScore = Calculate_DOTS(bodyWeight, total, gender);
-				// Create a new lift document in the 'lifts' collection
-				const liftDocRef = await addDoc(collection(db, 'lifts'), {
-					userId: $user.uid,
-					displayName: $user.displayName,
+				userInfo = await getUserInfo($user.uid);
+				if (userInfo) {
+					gender = userInfo.gender;
+					selectedUniversity = userInfo.selectedUniversity;
+					console.log(`selectedUni: ${userInfo.selectedUniversity}`);
+				}
+			} catch (error) {
+				console.error('Error fetching user information:', error);
+			}
+		}
+	});
+
+	const handleSubmit = async (event: Event) => {
+		event.preventDefault();
+		if ($user) {
+			try {
+				await submitLift(
+					$user,
 					squat,
 					bench,
 					deadlift,
-					gender,
+					bodyWeight,
 					age,
-					dotsScore,
-					selectedUniversity,
-					total,
-					timestamp: serverTimestamp()
-				});
-
-				// Add or update the lift in the user's specific lifter table
-				const lifterDocRef = doc(db, 'lifters', $user.uid);
-				await setDoc(
-					lifterDocRef,
-					{
-						userId: $user.uid,
-						displayName: $user.displayName,
-						gender,
-						lifts: {
-							[liftDocRef.id]: {
-								squat,
-								bench,
-								deadlift,
-								age,
-								total,
-								timestamp: serverTimestamp()
-							}
-						}
-					},
-					{ merge: true }
+					gender,
+					selectedUniversity
 				);
-
-				alert('Submission successful!');
+				alert('Lift submitted successfully!');
+				// Optionally reset form fields here
 			} catch (error) {
-				console.error('Error submitting lifts:', error);
+				console.error('Error submitting lift:', error);
+				alert('Error submitting lift. Please try again.');
 			}
 		} else {
-			alert('Please sign in to submit your lifts.');
+			alert('Please sign in to submit your lift.');
 		}
 	};
 </script>
@@ -100,7 +73,7 @@
 		<h6>Enter everything in pounds</h6>
 	</header>
 
-	<Form on:submit={submitLifts} class="w-75 mx-auto">
+	<Form on:submit={handleSubmit} class="w-75 mx-auto">
 		<Row class="mb-3">
 			<Col sm={12} md={4}>
 				<FormGroup>
