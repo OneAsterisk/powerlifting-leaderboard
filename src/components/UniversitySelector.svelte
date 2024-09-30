@@ -22,7 +22,7 @@
 
 	// Fetch data when component mounts
 	fetchUniversities();
-	console.log(JSON.stringify(universities));
+	
 </script>
 
 <!-- Display the universities -->

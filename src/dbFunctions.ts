@@ -22,7 +22,7 @@ interface Lift {
 	age: number;
 	total: number;
 	dotsScore: number;
-	selectedUniversity: string;
+	selectedUniversity: any[];
 	timestamp: any;
 }
 export interface UserInfo {
@@ -137,7 +137,7 @@ export const getTopLifts = (
 				rank: index + 1,
 				...data,
 				formattedDate: formatDate(data.timestamp),
-				selectedUniversity: data.selectedUniversity || 'Not Specified'
+				selectedUniversity: data.selectedUniversity.name || 'Not Specified'
 			};
 		});
 		callback(topLifts);

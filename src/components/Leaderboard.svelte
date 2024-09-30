@@ -99,8 +99,8 @@
 
 <style>
 	.leaderboard-container {
-		width: 90%;
-		max-width: 85%;
+		width: 100%;
+		max-width: 100%;
 		margin: 0 auto;
 		padding: 20px;
 	}
@@ -120,11 +120,15 @@
 	:global(.mdc-data-table__header-cell) {
 		font-weight: bold;
 		text-transform: uppercase;
-		background-color: #121212;
+		background-color: #0761c7;
+		font-size: 1.125rem;
+		color: aliceblue;
 	}
 
 	:global(.mdc-data-table__cell) {
 		padding: 12px 16px;
+		color:aliceblue;
+		text-align: left;
 	}
 
 	:global(.material-icons) {
