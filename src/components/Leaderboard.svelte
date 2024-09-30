@@ -128,7 +128,6 @@
 	:global(.mdc-data-table__cell) {
 		padding: 12px 16px;
 		color:aliceblue;
-		text-align: left;
 	}
 
 	:global(.material-icons) {
