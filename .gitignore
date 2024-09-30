@@ -66,3 +66,5 @@ firebase.js
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 src/lib/firebase.js
+
+.vercel
