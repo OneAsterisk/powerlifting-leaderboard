@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-static';
+import adapter from '@sveltejs/adapter-vercel';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -6,25 +6,23 @@ const config = {
 	preprocess: vitePreprocess({
 		scss: {
 			prependData: '@use "sass:math";',
-			quietDeps: true // This line suppresses warnings from dependencies
+			quietDeps: true // Suppresses warnings from dependencies
 		}
 	}),
 
 	kit: {
-		adapter: adapter({
-			pages: 'build',
-			assets: 'build',
-			fallback: 'index.html',
-			precompress: false,
-			strict: true
-		}),
+		adapter: adapter(),
 		alias: {
 			$lib: 'src/lib'
 		},
+		// Adjust prerender settings as needed for SSR
 		prerender: {
-			crawl: true,
-			entries: ['*']
-		}
+			entries: ['*'] // Adjust or remove if full SSR is desired
+			// If you prefer full SSR without prerendering, you can disable it:
+			// default: false
+		},
+		// Optional: Define trailing slash behavior
+		trailingSlash: 'never' // or 'always', 'ignore' based on preference
 	}
 };
 
