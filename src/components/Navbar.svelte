@@ -4,7 +4,9 @@
 </script>
 
 <Navbar color="dark" dark expand="md">
-	<NavbarBrand href="/">Powerlifting Leaderboard</NavbarBrand>
+	<NavbarBrand href="/"
+		><img class="logo" alt="Collegiate Strength Logo" src="/Logo.svg" /></NavbarBrand
+	>
 	<Nav navbar>
 		<NavItem>
 			<NavLink href="/">Home</NavLink>
@@ -23,3 +25,9 @@
 		</NavItem>
 	</Nav>
 </Navbar>
+
+<style>
+	.logo {
+		width: 150px;
+	}
+</style>
