@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 
 export async function GET({ url }) {
 	const country = url.searchParams.get('country') || 'United States';
-	const apiUrl = `https://universities.hipolabs.com/search?country=${encodeURIComponent(country)}`;
+	const apiUrl = `http://universities.hipolabs.com/search?country=${encodeURIComponent(country)}`;
 
 	try {
 		const response = await fetch(apiUrl);
