@@ -20,9 +20,7 @@ const config = {
 			entries: ['*'] // Adjust or remove if full SSR is desired
 			// If you prefer full SSR without prerendering, you can disable it:
 			// default: false
-		},
-		// Optional: Define trailing slash behavior
-		trailingSlash: 'never' // or 'always', 'ignore' based on preference
+		}
 	}
 };
 
