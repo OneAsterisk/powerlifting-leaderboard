@@ -18,7 +18,7 @@
 		}
 	};
 
-	onMount(fetchUniversities);
+	onMount(fetchUniversities); // Fetch universities when component mounts
 </script>
 
 <InputGroup>
