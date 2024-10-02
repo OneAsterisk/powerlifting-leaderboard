@@ -98,6 +98,7 @@ export const submitLift = async (
 					userId: user.uid,
 					displayName: user.displayName,
 					gender,
+					selectedUniversity,
 					lifts: {
 						[liftDocRef.id]: {
 							squat,
@@ -137,7 +138,7 @@ export const getTopLifts = (
 				rank: index + 1,
 				...data,
 				formattedDate: formatDate(data.timestamp),
-				selectedUniversity: data.selectedUniversity.name || 'Not Specified'
+				selectedUniversity: data.selectedUniversity || 'Not Specified'
 			};
 		});
 		callback(topLifts);
@@ -166,24 +167,29 @@ export const getUserInfo = async (userId: string): Promise<UserInfo | null> => {
 	}
 };
 // Function to get lifts for a specific user
-export const getUserLifts = async (userId: string): Promise<Lift[]> => {
-	try {
-		const lifterRef = doc(db, 'lifters', userId);
-		const lifterDoc = await getDoc(lifterRef);
-
-		if (lifterDoc.exists()) {
-			const data = lifterDoc.data() as LifterData;
-			return Object.values(data.lifts).map((lift) => ({
-				...lift,
-				formattedDate: formatDate(lift.timestamp)
-			}));
-		} else {
-			return [];
+export const getUserLifts = (userId: string, callback: (lifts: Lift[]) => void): (() => void) => {
+	const lifterRef = doc(db, 'lifters', userId);
+	const unsubscribe = onSnapshot(
+		lifterRef,
+		(docSnapshot) => {
+			if (docSnapshot.exists()) {
+				const data = docSnapshot.data() as LifterData;
+				const lifts: Lift[] = Object.values(data.lifts).map((lift) => ({
+					...lift,
+					formattedDate: formatDate(lift.timestamp)
+				}));
+				callback(lifts);
+			} else {
+				callback([]);
+			}
+		},
+		(error) => {
+			console.error('Error fetching user lifts:', error);
+			callback([]);
 		}
-	} catch (error) {
-		console.error('Error fetching user lifts:', error);
-		throw error;
-	}
+	);
+
+	return unsubscribe;
 };
 
 // Helper function to format date

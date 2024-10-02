@@ -1,37 +1,30 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { Input, InputGroup, InputGroupText } from '@sveltestrap/sveltestrap';
 
-	/**
-	 * @type {string | any[]}
-	 */
-	let universities: any[] = [];
-	let country = 'United States';
 	export let selectedUniversity: string = '';
+	console.log(`Uni in UniSelector: ${selectedUniversity}`);
+	let universities: string[] = [];
 
-	const fetchUniversities = async () => {
+	onMount(async () => {
 		try {
-			const response = await fetch(`/api/universities?country=${encodeURIComponent(country)}`);
-			if (!response.ok) {
-				throw new Error('Failed to fetch data from server');
-			}
-			universities = await response.json();
+			const response = await fetch('http://universities.hipolabs.com/search?country=United+States');
+			const data = await response.json();
+			universities = data.map((uni: { name: string }) => uni.name).sort();
 		} catch (error) {
 			console.error('Error fetching universities:', error);
 		}
-	};
-
-	// Fetch data when component mounts
-	fetchUniversities();
-	
+	});
 </script>
 
-<!-- Display the universities -->
 <InputGroup>
 	<InputGroupText class="custom-label">University</InputGroupText>
 	<Input type="select" id="university" bind:value={selectedUniversity}>
-		<option value="">Select University</option>
+		<option value="">{selectedUniversity ? selectedUniversity : 'Select University'}</option>
 		{#each universities as university}
-			<option value={university}>{university.name}</option>
+			<option value={university}>
+				{university}
+			</option>
 		{/each}
 	</Input>
 </InputGroup>
