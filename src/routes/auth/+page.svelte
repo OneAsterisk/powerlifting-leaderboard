@@ -35,9 +35,7 @@
 {#if $user}
 	<h1>Welcome, {$user.displayName}!</h1>
 	<Button on:click={logout}>Sign Out</Button>
-	<article>
-		<Leaderboard/>
-	</article>
+	<article></article>
 	<aside>
 		<p>This Will be a "form" that allows user to change specific settings</p>
 	</aside>
