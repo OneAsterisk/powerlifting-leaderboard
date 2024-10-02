@@ -24,7 +24,7 @@
 <InputGroup>
 	<InputGroupText class="custom-label">University</InputGroupText>
 	<Input type="select" id="university" bind:value={selectedUniversity}>
-		<option value="">Select University</option>
+		<option value="">{selectedUniversity ? selectedUniversity : 'Select University'}</option>
 		{#each universities as university}
 			<option value={university}>
 				{university}
