@@ -15,7 +15,8 @@ export async function GET({ url }) {
 		}
 
 		const data = await response.json();
-		return json(data);
+		const universityNames = data.map((uni) => uni.name).sort();
+		return json(universityNames);
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		return json({ error: 'An error occurred while fetching data' }, { status: 500 });

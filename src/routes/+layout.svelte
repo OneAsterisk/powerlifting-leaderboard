@@ -2,6 +2,7 @@
 	import { Theme } from '@sveltestrap/sveltestrap';
 	import Navbar from '../components/Navbar.svelte';
 	import '../lib/styles/global.scss';
+	import Footer from '../components/Footer.svelte';
 </script>
 
 <Theme theme="dark">
@@ -11,9 +12,7 @@
 	<main>
 		<slot />
 	</main>
-	<footer>
-		<!-- Footer content -->
-	</footer>
+	<Footer />
 </Theme>
 
 <style lang="scss" global>

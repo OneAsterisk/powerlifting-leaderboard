@@ -3,24 +3,28 @@
 	import { Input, InputGroup, InputGroupText } from '@sveltestrap/sveltestrap';
 
 	export let selectedUniversity: string = '';
-	console.log(`Uni in UniSelector: ${selectedUniversity}`);
 	let universities: string[] = [];
+	let country = 'United States';
 
-	onMount(async () => {
+	const fetchUniversities = async () => {
 		try {
-			const response = await fetch('http://universities.hipolabs.com/search?country=United+States');
-			const data = await response.json();
-			universities = data.map((uni: { name: string }) => uni.name).sort();
+			const response = await fetch(`/api/universities?country=${encodeURIComponent(country)}`);
+			if (!response.ok) {
+				throw new Error('Failed to fetch data from server');
+			}
+			universities = await response.json();
 		} catch (error) {
 			console.error('Error fetching universities:', error);
 		}
-	});
+	};
+
+	onMount(fetchUniversities);
 </script>
 
 <InputGroup>
 	<InputGroupText class="custom-label">University</InputGroupText>
 	<Input type="select" id="university" bind:value={selectedUniversity}>
-		<option value="">{selectedUniversity ? selectedUniversity : 'Select University'}</option>
+		<option value="">Select University</option>
 		{#each universities as university}
 			<option value={university}>
 				{university}
