@@ -4,6 +4,9 @@
 	import { auth, provider } from '$lib/firebase';
 	import { signInWithPopup, signOut } from 'firebase/auth';
 	import { Button } from '@sveltestrap/sveltestrap';
+	import Leaderboard from '../../components/Leaderboard.svelte';
+
+	const title = 'Collegiate Strength - User Profile';
 
 	const login = async () => {
 		try {
@@ -26,9 +29,18 @@
 	};
 </script>
 
+<svelte:head>
+	<title>{title}</title>
+</svelte:head>
 {#if $user}
 	<h1>Welcome, {$user.displayName}!</h1>
 	<Button on:click={logout}>Sign Out</Button>
+	<article>
+		<Leaderboard leaderboardType="user" />
+	</article>
+	<aside>
+		<p>This Will be a "form" that allows user to change specific settings</p>
+	</aside>
 {:else}
 	<p>Please sign in to access all features:</p>
 	<Button on:click={login}>Sign In with Google</Button>
@@ -37,5 +49,7 @@
 <style>
 	h1 {
 		color: var(--dark-accent-blue);
+	}
+	.settings-panel {
 	}
 </style>

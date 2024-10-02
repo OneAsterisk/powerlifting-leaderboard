@@ -25,7 +25,7 @@
 	let deadlift: number = 0;
 	let bodyWeight: number = 0;
 	let age: number = 0;
-
+	const title = 'Collegiate Strength - Submit Lift';
 	onMount(async () => {
 		if ($user) {
 			try {
@@ -67,6 +67,9 @@
 	};
 </script>
 
+<svelte:head>
+	<title>{title}</title>
+</svelte:head>
 {#if $user}
 	<header class="w-75 mx-auto">
 		<h1>Submit Your Lifts</h1>
