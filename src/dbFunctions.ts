@@ -75,7 +75,6 @@ export const submitLift = async (
 			const dotsScore = Calculate_DOTS(bodyWeight, total, gender);
 
 			// Create a new lift document in the 'lifts' collection
-			console.log(`SelectedUni: ${selectedUniversity}`);
 			const liftDocRef = await addDoc(collection(db, 'lifts'), {
 				userId: user.uid,
 				displayName: user.displayName,
@@ -124,16 +123,15 @@ export const submitLift = async (
 };
 
 // Function to get top lifts
-export const getTopLifts = (
+export const getAllLifts = (
 	callback: (lifts: any[]) => void,
-	limitCount: number = 10
+	// limitCount: number = 10
 ): (() => void) => {
-	const q = query(collection(db, 'lifts'), orderBy('dotsScore', 'desc'), limit(limitCount));
+	const q = query(collection(db, 'lifts'), orderBy('dotsScore', 'desc'));
 
 	const unsubscribe = onSnapshot(q, (querySnapshot) => {
 		const topLifts = querySnapshot.docs.map((doc, index) => {
 			const data = doc.data() as Lift & { displayName: string };
-			console.log(data.dotsScore);
 			return {
 				rank: index + 1,
 				...data,
@@ -146,6 +144,23 @@ export const getTopLifts = (
 
 	return unsubscribe;
 };
+export const getUserInfoNew = (userId: string, callback: (userInfo: UserInfo | null) => void): (() => void) => {
+	const q = query(collection(db, 'lifters'), orderBy('userId'), limit(1));
+	const unsubscribe = onSnapshot(q, (querySnapshot) => {
+		const userInfo = querySnapshot.docs.map((doc) => {
+			const data = doc.data() as UserInfo;
+			return {
+				displayName: data.displayName,
+				gender: data.gender,
+				selectedUniversity: data.selectedUniversity || 'Not Specified' 
+			};
+		});
+		callback(userInfo[0]);
+	});
+
+	return unsubscribe;
+
+}
 export const getUserInfo = async (userId: string): Promise<UserInfo | null> => {
 	try {
 		const lifterRef = doc(db, 'lifters', userId);

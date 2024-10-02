@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { getTopLifts } from '../dbFunctions';
+	import { getAllLifts } from '../dbFunctions';
 	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 
@@ -22,7 +22,7 @@
 	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
 
 	onMount(() => {
-		unsubscribe = getTopLifts((updatedLifts) => {
+		unsubscribe = getAllLifts((updatedLifts) => {
 			topLifts = updatedLifts;
 			handleSort();
 		});
