@@ -36,7 +36,7 @@
 	<h1>Welcome, {$user.displayName}!</h1>
 	<Button on:click={logout}>Sign Out</Button>
 	<article>
-		<Leaderboard leaderboardType="user" />
+		<Leaderboard/>
 	</article>
 	<aside>
 		<p>This Will be a "form" that allows user to change specific settings</p>

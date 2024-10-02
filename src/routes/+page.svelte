@@ -11,5 +11,5 @@
 	<title>{title}</title>
 </svelte:head>
 <Theme theme="dark">
-	<Leaderboard leaderboardType="all" />
+	<Leaderboard />
 </Theme>
