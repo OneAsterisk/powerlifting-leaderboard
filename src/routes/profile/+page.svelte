@@ -3,15 +3,19 @@
 	import { userInfoStore } from '../../stores/userInfoStore';
 	import { auth, provider } from '$lib/firebase';
 	import { signInWithPopup, signOut } from 'firebase/auth';
-	import { Button } from '@sveltestrap/sveltestrap';
+	import { Button, Form, FormGroup, InputGroup,
+		InputGroupText, Input } from '@sveltestrap/sveltestrap';
 	import { onMount, onDestroy } from 'svelte';
 	import { getUserLifts } from '../../dbFunctions';
 	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 	import type { Lift } from '../../types';
+	import UniversitySelector from '../../components/UniversitySelector.svelte';
 
 	const title = 'Collegiate Strength - User Profile';
 	let userLifts: Lift[] = [];
+	let selectedUniversity = '';
+	let gender = '';
 	let sort: keyof Lift = 'dotsScore';
 	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
 	let unsubscribeUser: (() => void) | undefined;
@@ -35,7 +39,10 @@
 		}
 		userInfoStore.clearUserInfo();
 	});
-
+	$: if ($userInfoStore) {
+		selectedUniversity = $userInfoStore.selectedUniversity;
+		gender = $userInfoStore.gender;
+	}
 	function handleSort() {
 		userLifts.sort((a, b) => {
 			const [aVal, bVal] = [a[sort], b[sort]][
@@ -92,15 +99,26 @@
 			<Button on:click={logout}>Sign Out</Button>
 		</div>
 		<aside class="settings-panel">
+			
 			<p>This Will be a "form" that allows user to change specific settings</p>
 			{#if $userInfoStore}
-				<section>
-					<p>University: {$userInfoStore.selectedUniversity}</p>
-				</section>
-				<section>
-					<p>Gender: {$userInfoStore.gender}</p>
-				</section>
-				<Button on:click={updateUserInfo}>Update User Info</Button>
+			<Form on:submit={updateUserInfo}>
+				<FormGroup>
+					<InputGroup>
+						<UniversitySelector bind:selectedUniversity />					</InputGroup>
+				</FormGroup>
+				<FormGroup>
+					<InputGroup>
+						<InputGroupText class="custom-label">Gender</InputGroupText>
+						<Input type="select" id="gender" bind:value={gender}>
+							<option value="">Select</option>
+							<option value="Male">Male</option>
+							<option value="Female">Female</option>
+						</Input>
+					</InputGroup>
+				</FormGroup>
+				<Button type="submit">Update Settings</Button>
+				</Form>
 			{:else}
 				<p>Loading user information...</p>
 			{/if}

@@ -14,17 +14,6 @@ import {
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import type { Lift } from './types';
-// Interface for a single lift
-// interface Lift {
-// 	squat: number;
-// 	bench: number;
-// 	deadlift: number;
-// 	age: number;
-// 	total: number;
-// 	dotsScore: number;
-// 	selectedUniversity: any[];
-// 	timestamp: any;
-// }
 export interface UserInfo {
 	displayName: string;
 	gender: string;
@@ -56,6 +45,26 @@ function Calculate_DOTS(bodyWeight: number, total: number, gender: string): numb
 
 	const score: number = (500 / denominator) * total;
 	return parseFloat(score.toFixed(2));
+}
+
+export const updateUserInfo = async (
+	user: User,
+	selectedUniversity: string,
+	gender: string,
+): Promise<void> => {
+	if(user){
+		try{
+			const updatedData = {
+				selectedUniversity: selectedUniversity,
+				gender: gender,
+			}
+			const lifterDocRef = doc(db, 'lifters', user.uid);
+			await setDoc(lifterDocRef,updatedData, {merge: true});
+		} catch (error) {
+			console.error('Error updating user info:', error);
+			throw error;
+	}
+}
 }
 
 // Function to submit a new lift
@@ -121,6 +130,7 @@ export const submitLift = async (
 		throw new Error('User not authenticated');
 	}
 };
+
 
 // Function to get top lifts
 export const getAllLifts = (
