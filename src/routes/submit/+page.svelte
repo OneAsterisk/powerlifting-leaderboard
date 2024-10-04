@@ -12,34 +12,45 @@
 		Col
 	} from '@sveltestrap/sveltestrap';
 	import UniversitySelector from '../../components/UniversitySelector.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { userInfoStore } from '../../stores/userInfoStore';
 
 	import { getUserInfo, submitLift } from '../../dbFunctions';
-	import type { UserInfo } from '../../dbFunctions'; // Make sure to export this interface in dbFunctions.ts
+	import type { UserInfo } from '../../dbFunctions';
+	
+	let unsubscribe: (() => void) | undefined;
 
-	let userInfo: UserInfo | null = null;
 	let gender = '';
-	let selectedUniversity: string = '';
-	let squat: number = 0;
-	let bench: number = 0;
-	let deadlift: number = 0;
-	let bodyWeight: number = 0;
-	let age: number = 0;
+	let selectedUniversity = '';
+	let squat = 0;
+	let bench = 0;
+	let deadlift = 0;
+	let bodyWeight = 0;
+	let age = 0;
 	const title = 'Collegiate Strength - Submit Lift';
-	onMount(async () => {
-		if ($user) {
-			try {
-				userInfo = await getUserInfo($user.uid);
-				if (userInfo) {
-					gender = userInfo.gender;
-					selectedUniversity = userInfo.selectedUniversity;
-					console.log(`selectedUni: ${userInfo.selectedUniversity}`);
-				}
-			} catch (error) {
-				console.error('Error fetching user information:', error);
+
+	onMount(() => {
+		unsubscribe = user.subscribe(currentUser => {
+			if (currentUser) {
+				userInfoStore.fetchUserInfo(currentUser.uid);
+			} else {
+				userInfoStore.clearUserInfo();
 			}
-		}
+		});
 	});
+
+	onDestroy(() => {
+		if (unsubscribe) {
+			unsubscribe();
+		}
+		userInfoStore.clearUserInfo();
+	});
+
+	// Use reactive statements to update local variables when userInfoStore changes
+	$: if ($userInfoStore) {
+		selectedUniversity = $userInfoStore.selectedUniversity;
+		gender = $userInfoStore.gender;
+	}
 
 	const handleSubmit = async (event: Event) => {
 		event.preventDefault();
@@ -141,8 +152,7 @@
 {:else}
 	<h2>Please sign in to be able to submit a lift</h2>
 {/if}
-
-<style>
+	<style>
 	:global(.custom-label) {
 		font-weight: bold;
 		display: flex;
@@ -168,3 +178,5 @@
 		flex: 1;
 	}
 </style>
+					
+
