@@ -13,18 +13,18 @@ import {
 	serverTimestamp
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
-
+import type { Lift } from './types';
 // Interface for a single lift
-interface Lift {
-	squat: number;
-	bench: number;
-	deadlift: number;
-	age: number;
-	total: number;
-	dotsScore: number;
-	selectedUniversity: any[];
-	timestamp: any;
-}
+// interface Lift {
+// 	squat: number;
+// 	bench: number;
+// 	deadlift: number;
+// 	age: number;
+// 	total: number;
+// 	dotsScore: number;
+// 	selectedUniversity: any[];
+// 	timestamp: any;
+// }
 export interface UserInfo {
 	displayName: string;
 	gender: string;
@@ -124,7 +124,7 @@ export const submitLift = async (
 
 // Function to get top lifts
 export const getAllLifts = (
-	callback: (lifts: any[]) => void,
+	callback: (lifts: any[]) => void
 	// limitCount: number = 10
 ): (() => void) => {
 	const q = query(collection(db, 'lifts'), orderBy('dotsScore', 'desc'));
@@ -144,7 +144,10 @@ export const getAllLifts = (
 
 	return unsubscribe;
 };
-export const getUserInfoNew = (userId: string, callback: (userInfo: UserInfo | null) => void): (() => void) => {
+export const getUserInfoNew = (
+	userId: string,
+	callback: (userInfo: UserInfo | null) => void
+): (() => void) => {
 	const q = query(collection(db, 'lifters'), orderBy('userId'), limit(1));
 	const unsubscribe = onSnapshot(q, (querySnapshot) => {
 		const userInfo = querySnapshot.docs.map((doc) => {
@@ -152,15 +155,14 @@ export const getUserInfoNew = (userId: string, callback: (userInfo: UserInfo | n
 			return {
 				displayName: data.displayName,
 				gender: data.gender,
-				selectedUniversity: data.selectedUniversity || 'Not Specified' 
+				selectedUniversity: data.selectedUniversity || 'Not Specified'
 			};
 		});
 		callback(userInfo[0]);
 	});
 
 	return unsubscribe;
-
-}
+};
 export const getUserInfo = async (userId: string): Promise<UserInfo | null> => {
 	try {
 		const lifterRef = doc(db, 'lifters', userId);

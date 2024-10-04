@@ -3,7 +3,7 @@
 	import { getAllLifts } from '../dbFunctions';
 	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
-
+	import type { Lift } from '../types';
 	type Lift = {
 		rank: number;
 		displayName: string;
@@ -48,10 +48,10 @@
 	}
 
 	const columns: { key: keyof Lift; label: string; numeric?: boolean; sortable?: boolean }[] = [
-		{ key: 'rank', label: 'Rank', numeric: true },
+		{ key: 'rank', label: 'Rank' },
 		{ key: 'displayName', label: 'Name' },
 		{ key: 'selectedUniversity', label: 'University' },
-		{ key: 'dotsScore', label: 'Dots' },
+		{ key: 'dotsScore', label: 'Dots', numeric: true },
 		{ key: 'total', label: 'Total', numeric: true },
 		{ key: 'squat', label: 'Squat', numeric: true },
 		{ key: 'bench', label: 'Bench', numeric: true },
@@ -63,6 +63,7 @@
 <div class="leaderboard-container">
 	<h1>Leaderboard</h1>
 	<DataTable
+		stickHeader
 		sortable
 		bind:sort
 		bind:sortDirection
@@ -73,7 +74,12 @@
 		<Head>
 			<Row>
 				{#each columns as column}
-					<Cell numeric={column.numeric} columnId={column.key} sortable={column.sortable !== false}>
+					<Cell
+						numeric={column.numeric}
+						columnId={column.key}
+						sortable={column.sortable !== false}
+						style={'width: 5%'}
+					>
 						{#if column.numeric}
 							<IconButton class="material-icons">arrow_upward</IconButton>
 						{/if}
@@ -127,7 +133,7 @@
 
 	:global(.mdc-data-table__cell) {
 		padding: 12px 16px;
-		color:aliceblue;
+		color: aliceblue;
 	}
 
 	:global(.material-icons) {
