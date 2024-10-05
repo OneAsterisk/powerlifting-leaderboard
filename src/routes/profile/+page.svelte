@@ -222,4 +222,28 @@
 	:global(.mdc-data-table__cell-numeric) {
 		width: 5%;
 	}
+
+	/* Responsive Styles */
+	@media (max-width: 850px) {
+		.main-content {
+			flex-direction: column;
+			width: 90%;
+			margin-right: 0;
+		}
+
+		.leaderboard-container,
+		.settings-panel {
+			width: 100%;
+			margin-right: 0;
+			margin-bottom: 20px; /* Add spacing between stacked elements */
+		}
+
+		.settings-panel {
+			padding: 15px; /* Optional: Adjust padding for better spacing on mobile */
+		}
+
+		h1 {
+			font-size: 1.5rem; /* Optional: Adjust heading size for better readability */
+		}
+	}
 </style>
