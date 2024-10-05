@@ -47,16 +47,11 @@ function Calculate_DOTS(bodyWeight: number, total: number, gender: string): numb
 	return parseFloat(score.toFixed(2));
 }
 
-export const updateUserInfo = async (
-	user: User,
-	selectedUniversity: string,
-	gender: string
-): Promise<void> => {
+export const updateUserInfo = async (user: User, selectedUniversity: string): Promise<void> => {
 	if (user) {
 		try {
 			const updatedData = {
-				selectedUniversity: selectedUniversity,
-				gender: gender
+				selectedUniversity: selectedUniversity
 			};
 			const lifterDocRef = doc(db, 'lifters', user.uid);
 			await setDoc(lifterDocRef, updatedData, { merge: true });
@@ -139,7 +134,6 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 		const topLifts = querySnapshot.docs
 			.map((doc, index) => {
 				const data = doc.data() as Lift & { displayName: string };
-				console.log(data);
 				if (!userIds.has(data.userId)) {
 					userIds.add(data.userId);
 					return {

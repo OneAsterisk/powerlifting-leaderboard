@@ -44,7 +44,7 @@
 		{ key: 'squat', label: 'Squat', numeric: true },
 		{ key: 'bench', label: 'Bench', numeric: true },
 		{ key: 'deadlift', label: 'Deadlift', numeric: true },
-		{ key: 'formattedDate', label: 'Date', sortable: false }
+		{ key: 'formattedDate', label: 'Date', numeric: true }
 	];
 </script>
 
