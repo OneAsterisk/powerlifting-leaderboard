@@ -17,13 +17,17 @@
 			console.error('Error fetching universities:', error);
 		}
 	};
-
-	onMount(fetchUniversities);
+	onMount(fetchUniversities); // Fetch universities when component mounts
 </script>
 
 <InputGroup>
 	<InputGroupText class="custom-label">University</InputGroupText>
-	<Input type="select" id="university" bind:value={selectedUniversity}>
+	<Input
+		type="select"
+		id="university"
+		bind:value={selectedUniversity}
+		style="text-overflow: ellipsis;"
+	>
 		<option value="">{selectedUniversity ? selectedUniversity : 'Select University'}</option>
 		{#each universities as university}
 			<option value={university}>
@@ -37,5 +41,6 @@
 	:global(.custom-label) {
 		width: 100px;
 		justify-content: center;
+		text-overflow: ellipsis;
 	}
 </style>

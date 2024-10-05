@@ -17,20 +17,21 @@
 
 	import { getUserInfo, submitLift } from '../../dbFunctions';
 	import type { UserInfo } from '../../dbFunctions';
-	
+
 	let unsubscribe: (() => void) | undefined;
 
 	let gender = '';
-	let selectedUniversity = '';
+	let selectedUniversity = 'Select University';
 	let squat = 0;
 	let bench = 0;
 	let deadlift = 0;
 	let bodyWeight = 0;
 	let age = 0;
 	const title = 'Collegiate Strength - Submit Lift';
+	let hasInitialized = false;
 
 	onMount(() => {
-		unsubscribe = user.subscribe(currentUser => {
+		unsubscribe = user.subscribe((currentUser) => {
 			if (currentUser) {
 				userInfoStore.fetchUserInfo(currentUser.uid);
 			} else {
@@ -46,10 +47,9 @@
 		userInfoStore.clearUserInfo();
 	});
 
-	// Use reactive statements to update local variables when userInfoStore changes
-	$: if ($userInfoStore) {
-		selectedUniversity = $userInfoStore.selectedUniversity;
-		gender = $userInfoStore.gender;
+	$: if ($userInfoStore && !hasInitialized) {
+		gender = $userInfoStore.gender || '';
+		hasInitialized = true;
 	}
 
 	const handleSubmit = async (event: Event) => {
@@ -152,7 +152,8 @@
 {:else}
 	<h2>Please sign in to be able to submit a lift</h2>
 {/if}
-	<style>
+
+<style>
 	:global(.custom-label) {
 		font-weight: bold;
 		display: flex;
@@ -178,5 +179,3 @@
 		flex: 1;
 	}
 </style>
-					
-

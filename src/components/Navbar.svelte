@@ -1,5 +1,5 @@
 <script>
-	import { Navbar, NavbarBrand, Nav, NavItem, NavLink } from '@sveltestrap/sveltestrap';
+	import { Navbar, NavbarBrand, Nav, NavItem, NavLink, Dropdown } from '@sveltestrap/sveltestrap';
 	import { user } from '../stores/userStore';
 </script>
 
@@ -22,6 +22,9 @@
 					Sign In
 				{/if}
 			</NavLink>
+		</NavItem>
+		<NavItem>
+			<NavLink href="/feedback">Feedback</NavLink>
 		</NavItem>
 	</Nav>
 </Navbar>

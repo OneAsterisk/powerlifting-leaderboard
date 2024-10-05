@@ -3,19 +3,24 @@
 	import { userInfoStore } from '../../stores/userInfoStore';
 	import { auth, provider } from '$lib/firebase';
 	import { signInWithPopup, signOut } from 'firebase/auth';
-	import { Button } from '@sveltestrap/sveltestrap';
+	import { Button, Form, FormGroup, InputGroup } from '@sveltestrap/sveltestrap';
 	import { onMount, onDestroy } from 'svelte';
-	import { getUserLifts } from '../../dbFunctions';
+	import { getUserLifts, updateUserInfo } from '../../dbFunctions';
 	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 	import type { Lift } from '../../types';
+	import UniversitySelector from '../../components/UniversitySelector.svelte';
 
 	const title = 'Collegiate Strength - User Profile';
 	let userLifts: Lift[] = [];
+	let selectedUniversity = '';
+	let gender = '';
 	let sort: keyof Lift = 'dotsScore';
 	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
 	let unsubscribeUser: (() => void) | undefined;
 	let unsubscribeLifts: (() => void) | undefined;
+	let hasInitialized = false;
+
 	onMount(() => {
 		unsubscribeUser = user.subscribe((currentUser) => {
 			if (currentUser && $user) {
@@ -35,6 +40,12 @@
 		}
 		userInfoStore.clearUserInfo();
 	});
+
+	$: if ($userInfoStore && !hasInitialized) {
+		selectedUniversity = $userInfoStore.selectedUniversity || '';
+		gender = $userInfoStore.gender || '';
+		hasInitialized = true;
+	}
 
 	function handleSort() {
 		userLifts.sort((a, b) => {
@@ -67,9 +78,17 @@
 		}
 	};
 
-	const updateUserInfo = () => {
-		userInfoStore.updateUserInfo({ gender: 'Updated Gender' });
-		// Note: Implement the actual update in Firebase here
+	const updateInfo = async (event: Event) => {
+		event.preventDefault();
+		if ($user) {
+			try {
+				await updateUserInfo($user, selectedUniversity);
+				alert(`Information updated successfully!`);
+			} catch (error) {
+				console.error(`Error updating info: `, error);
+				alert(`Error updating info. Please try again.`);
+			}
+		}
 	};
 
 	const columns: { key: keyof Lift; label: string; numeric?: boolean; sortable?: boolean }[] = [
@@ -86,64 +105,65 @@
 </svelte:head>
 
 {#if $user}
-	<div class="user-container">
-		<div>
-			<h1>Welcome, {$user.displayName}!</h1>
-			<Button on:click={logout}>Sign Out</Button>
+	<Button on:click={logout}>Sign Out</Button>
+	<h1>Welcome, {$user.displayName}!</h1>
+
+	<!-- Main content container -->
+	<div class="main-content">
+		<!-- Left side: Lifts table -->
+		<div class="leaderboard-container">
+			<DataTable
+				sortable
+				bind:sort
+				bind:sortDirection
+				on:SMUIDataTable:sorted={handleSort}
+				table$aria-label="Powerlifting Leaderboard"
+				style="width: 100%;"
+			>
+				<Head>
+					<Row>
+						{#each columns as column}
+							<Cell
+								numeric={column.numeric}
+								columnId={column.key}
+								sortable={column.sortable !== false}
+							>
+								{#if column.numeric}
+									<IconButton class="material-icons">arrow_upward</IconButton>
+								{/if}
+								<Label>{column.label}</Label>
+								{#if !column.numeric && column.sortable !== false}
+									<IconButton class="material-icons">arrow_upward</IconButton>
+								{/if}
+							</Cell>
+						{/each}
+					</Row>
+				</Head>
+				<Body>
+					{#each userLifts as lift (lift.total)}
+						<Row>
+							{#each columns as column}
+								<Cell numeric={column.numeric}>{lift[column.key]}</Cell>
+							{/each}
+						</Row>
+					{/each}
+				</Body>
+			</DataTable>
 		</div>
 		<aside class="settings-panel">
-			<p>This Will be a "form" that allows user to change specific settings</p>
 			{#if $userInfoStore}
-				<section>
-					<p>University: {$userInfoStore.selectedUniversity}</p>
-				</section>
-				<section>
-					<p>Gender: {$userInfoStore.gender}</p>
-				</section>
-				<Button on:click={updateUserInfo}>Update User Info</Button>
+				<Form on:submit={updateInfo}>
+					<FormGroup>
+						<InputGroup>
+							<UniversitySelector bind:selectedUniversity />
+						</InputGroup>
+					</FormGroup>
+					<Button type="submit">Update Settings</Button>
+				</Form>
 			{:else}
 				<p>Loading user information...</p>
 			{/if}
 		</aside>
-	</div>
-	<div class="leaderboard-container">
-		<DataTable
-			sortable
-			bind:sort
-			bind:sortDirection
-			on:SMUIDataTable:sorted={handleSort}
-			table$aria-label="Powerlifting Leaderboard"
-			style="width: 100%;"
-		>
-			<Head>
-				<Row>
-					{#each columns as column}
-						<Cell
-							numeric={column.numeric}
-							columnId={column.key}
-							sortable={column.sortable !== false}
-						>
-							{#if column.numeric}
-								<IconButton class="material-icons">arrow_upward</IconButton>
-							{/if}
-							<Label>{column.label}</Label>
-							{#if !column.numeric && column.sortable !== false}
-								<IconButton class="material-icons">arrow_upward</IconButton>
-							{/if}
-						</Cell>
-					{/each}
-				</Row>
-			</Head>
-			<Body>
-				{#each userLifts as lift (lift.total)}
-					<Row>
-						{#each columns as column}
-							<Cell numeric={column.numeric}>{lift[column.key]}</Cell>
-						{/each}
-					</Row>
-				{/each}
-			</Body>
-		</DataTable>
 	</div>
 {:else}
 	<p>Please sign in to access all features:</p>
@@ -151,10 +171,32 @@
 {/if}
 
 <style>
-	.leaderboard-container {
-		width: 65%;
+	h1 {
+		color: var(--dark-accent-blue);
 		text-align: center;
+	}
+
+	.main-content {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-start;
+		width: 80%;
 		margin: auto;
+		margin-top: 20px;
+		margin-right: 30px;
+	}
+
+	.leaderboard-container {
+		flex: 3;
+		width: 65%;
+		margin-right: 20px;
+	}
+
+	.settings-panel {
+		flex: 1;
+		/* background-color: #f9f9f9; */
+		padding: 10px;
+		border-radius: 8px;
 	}
 
 	:global(.mdc-data-table) {
@@ -164,9 +206,11 @@
 		overflow: hidden;
 		text-align: center;
 	}
+
 	:global(.mdc-data-table__table) {
 		table-layout: auto;
 	}
+
 	:global(.mdc-data-table__header-cell) {
 		font-weight: bold;
 		text-transform: uppercase;
@@ -177,23 +221,5 @@
 	}
 	:global(.mdc-data-table__cell-numeric) {
 		width: 5%;
-	}
-
-	.user-container {
-		display: flex;
-		flex-grow: 1;
-	}
-	h1 {
-		color: var(--dark-accent-blue);
-	}
-	.settings-panel {
-		display: flex;
-		flex-direction: column;
-		align-items: start;
-		border: 1px black solid;
-		margin-left: 50%;
-		width: 25%;
-		color: red;
-		flex-grow: 3;
 	}
 </style>

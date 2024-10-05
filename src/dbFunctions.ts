@@ -14,17 +14,6 @@ import {
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import type { Lift } from './types';
-// Interface for a single lift
-// interface Lift {
-// 	squat: number;
-// 	bench: number;
-// 	deadlift: number;
-// 	age: number;
-// 	total: number;
-// 	dotsScore: number;
-// 	selectedUniversity: any[];
-// 	timestamp: any;
-// }
 export interface UserInfo {
 	displayName: string;
 	gender: string;
@@ -57,6 +46,21 @@ function Calculate_DOTS(bodyWeight: number, total: number, gender: string): numb
 	const score: number = (500 / denominator) * total;
 	return parseFloat(score.toFixed(2));
 }
+
+export const updateUserInfo = async (user: User, selectedUniversity: string): Promise<void> => {
+	if (user) {
+		try {
+			const updatedData = {
+				selectedUniversity: selectedUniversity
+			};
+			const lifterDocRef = doc(db, 'lifters', user.uid);
+			await setDoc(lifterDocRef, updatedData, { merge: true });
+		} catch (error) {
+			console.error('Error updating user info:', error);
+			throw error;
+		}
+	}
+};
 
 // Function to submit a new lift
 export const submitLift = async (
@@ -123,27 +127,32 @@ export const submitLift = async (
 };
 
 // Function to get top lifts
-export const getAllLifts = (
-	callback: (lifts: any[]) => void
-	// limitCount: number = 10
-): (() => void) => {
+export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => {
 	const q = query(collection(db, 'lifts'), orderBy('dotsScore', 'desc'));
-
+	const userIds = new Set<string>();
 	const unsubscribe = onSnapshot(q, (querySnapshot) => {
-		const topLifts = querySnapshot.docs.map((doc, index) => {
-			const data = doc.data() as Lift & { displayName: string };
-			return {
-				rank: index + 1,
-				...data,
-				formattedDate: formatDate(data.timestamp),
-				selectedUniversity: data.selectedUniversity || 'Not Specified'
-			};
-		});
+		const topLifts = querySnapshot.docs
+			.map((doc, index) => {
+				const data = doc.data() as Lift & { displayName: string };
+				if (!userIds.has(data.userId)) {
+					userIds.add(data.userId);
+					return {
+						rank: index + 1,
+						...data,
+						formattedDate: formatDate(data.timestamp),
+						selectedUniversity: data.selectedUniversity || 'Not Specified'
+					};
+				}
+				return undefined; // Explicitly return undefined
+			})
+			.filter((lift): lift is Lift => lift !== undefined); // Type guard to ensure Lift type
+
 		callback(topLifts);
 	});
 
 	return unsubscribe;
 };
+
 export const getUserInfoNew = (
 	userId: string,
 	callback: (userInfo: UserInfo | null) => void

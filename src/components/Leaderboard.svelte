@@ -4,18 +4,6 @@
 	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 	import type { Lift } from '../types';
-	type Lift = {
-		rank: number;
-		displayName: string;
-		selectedUniversity: string;
-		dotsScore: number;
-		total: number;
-		squat: number;
-		bench: number;
-		deadlift: number;
-		formattedDate: string;
-	};
-
 	let topLifts: Lift[] = [];
 	let unsubscribe: () => void;
 	let sort: keyof Lift = 'rank';
@@ -56,14 +44,14 @@
 		{ key: 'squat', label: 'Squat', numeric: true },
 		{ key: 'bench', label: 'Bench', numeric: true },
 		{ key: 'deadlift', label: 'Deadlift', numeric: true },
-		{ key: 'formattedDate', label: 'Date', sortable: false }
+		{ key: 'formattedDate', label: 'Date', numeric: true }
 	];
 </script>
 
 <div class="leaderboard-container">
 	<h1>Leaderboard</h1>
 	<DataTable
-		stickHeader
+		stickyHeader
 		sortable
 		bind:sort
 		bind:sortDirection
