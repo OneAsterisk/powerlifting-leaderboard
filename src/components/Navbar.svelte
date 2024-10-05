@@ -4,9 +4,10 @@
 </script>
 
 <Navbar color="dark" dark expand="md">
-	<NavbarBrand href="/"
-		><img class="logo" alt="Collegiate Strength Logo" src="/Logo.svg" /></NavbarBrand
-	>
+	<NavbarBrand href="/" style={'color: #f35151'}
+		><img class="logo" alt="Collegiate Strength Logo" src="/Logo.svg" />
+		Beta V0.1.0
+	</NavbarBrand>
 	<Nav navbar>
 		<NavItem>
 			<NavLink href="/">Home</NavLink>
@@ -32,5 +33,6 @@
 <style>
 	.logo {
 		width: 150px;
+		color: #f35151;
 	}
 </style>
