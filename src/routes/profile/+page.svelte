@@ -117,7 +117,7 @@
 				bind:sort
 				bind:sortDirection
 				on:SMUIDataTable:sorted={handleSort}
-				table$aria-label="Powerlifting Leaderboard"
+				table$aria-label="Personal Lifts"
 				style="width: 100%;"
 			>
 				<Head>

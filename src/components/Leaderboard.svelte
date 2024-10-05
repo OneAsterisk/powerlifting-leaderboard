@@ -51,7 +51,6 @@
 <div class="leaderboard-container">
 	<h1>Leaderboard</h1>
 	<DataTable
-		stickyHeader
 		sortable
 		bind:sort
 		bind:sortDirection
