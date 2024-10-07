@@ -1,19 +1,140 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
-    match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2024, 10, 27);
+    
+    // ----------------------------
+    // Rules for the 'lifters' collection
+    // ----------------------------
+    match /lifters/{userId} {
+      
+      // Publicly readable
+      allow read: if true;
+      
+      // Allow users to create their own profile
+      allow create: if isAuthenticated()
+                    && isCreatingOwnProfile(userId)
+                    && validLifterData(request.resource.data);
+      
+      // Allow users to update their own profile
+      allow update: if isAuthenticated()
+                    && isUpdatingOwnProfile(userId)
+                    && validLifterUpdate(request.resource.data, resource.data);
+      
+      // Prevent deletion
+      allow delete: if false;
+    }
+    
+    // ----------------------------
+    // Rules for the 'lifts' collection
+    // ----------------------------
+    match /lifts/{liftId} {
+      
+      // Publicly readable
+      allow read: if true;
+      
+      // Allow users to create a lift
+      allow create: if isAuthenticated()
+                    && isCreatingOwnLift()
+                    && validLiftData(request.resource.data);
+      
+      // Allow users to update their own lifts
+      allow update: if isAuthenticated()
+                    && isOwningLift()
+                    && validLiftUpdate(request.resource.data, resource.data);
+      
+      // Allow users to delete their own lifts
+      allow delete: if isAuthenticated()
+                    && isOwningLift();
+    }
+    
+    // ----------------------------
+    // Additional Collections (e.g., adminData)
+    // ----------------------------
+    match /adminData/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // ----------------------------
+    // Helper Functions
+    // ----------------------------
+    
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if the user is creating their own profile
+    function isCreatingOwnProfile(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Check if the user is updating their own profile
+    function isUpdatingOwnProfile(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Check if the user is creating a lift with their own userId
+    function isCreatingOwnLift() {
+      return request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Check if the user owns the lift they're trying to modify
+    function isOwningLift() {
+      return request.auth.uid == resource.data.userId;
+    }
+    
+    // Check if the user has admin role
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
+    
+    // Validate 'lifters' creation data
+    function validLifterData(data) {
+      return data.keys().hasAll(['displayName', 'gender', 'userId'])
+             && data.displayName is string
+             && data.gender is string
+             && data.userId == request.auth.uid
+             && data.displayName.size() > 0 && data.displayName.size() <= 50
+             && data.gender in ['Male', 'Female', 'Other'];
+    }
+    
+    // Validate 'lifters' update data
+    function validLifterUpdate(newData, existingData) {
+      return newData.keys().hasOnly(['displayName', 'gender', 'selectedUniversity'])
+             && newData.displayName is string
+             && newData.gender is string
+             && (newData.selectedUniversity is string || newData.selectedUniversity == null)
+             && newData.displayName.size() > 0 && newData.displayName.size() <= 50
+             && newData.gender in ['Male', 'Female', 'Other']
+             && (newData.selectedUniversity.size() <= 100);
+    }
+    
+    // Validate 'lifts' creation data
+    function validLiftData(data) {
+      return data.keys().hasAll(['age', 'bench', 'deadlift', 'displayName', 'dotsScore', 'gender', 'selectedUniversity', 'squat', 'timestamp', 'total', 'userId'])
+             && data.age is number && data.age >= 15 && data.age <= 100
+             && data.bench is number && data.bench >= 0
+             && data.deadlift is number && data.deadlift >= 0
+             && data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 50
+             && data.dotsScore is number && data.dotsScore >= 0
+             && data.gender is string && data.gender in ['Male', 'Female', 'Other']
+             && data.selectedUniversity is string && data.selectedUniversity.size() > 0 && data.selectedUniversity.size() <= 100
+             && data.squat is number && data.squat >= 0
+             && data.timestamp is timestamp && data.timestamp <= request.time
+             && data.total is number && data.total >= 0
+             && data.userId == request.auth.uid;
+    }
+    
+    // Validate 'lifts' update data
+    function validLiftUpdate(newData, existingData) {
+      return newData.keys().hasOnly(['age', 'bench', 'deadlift', 'dotsScore', 'squat', 'timestamp', 'total'])
+             && newData.age is number && newData.age >= 15 && newData.age <= 100
+             && newData.bench is number && newData.bench >= 0
+             && newData.deadlift is number && newData.deadlift >= 0
+             && newData.dotsScore is number && newData.dotsScore >= 0
+             && newData.squat is number && newData.squat >= 0
+             && newData.timestamp is timestamp && newData.timestamp <= request.time
+             && newData.total is number && newData.total >= 0;
     }
   }
 }

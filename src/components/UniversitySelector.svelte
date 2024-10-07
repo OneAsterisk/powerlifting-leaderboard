@@ -23,18 +23,19 @@
 <InputGroup>
 	<InputGroupText class="custom-label">University</InputGroupText>
 	<Input
-		type="select"
+		type="text"
 		id="university"
 		bind:value={selectedUniversity}
-		style="text-overflow: ellipsis;"
-	>
-		<option value="">{selectedUniversity ? selectedUniversity : 'Select University'}</option>
+		list="universitiesList"
+		placeholder="Select or type..."
+		style="text-overflow: ellipsis; border-top-right-radius: 5px;
+		border-bottom-right-radius: 5px;"
+	/>
+	<datalist id="universitiesList">
 		{#each universities as university}
-			<option value={university}>
-				{university}
-			</option>
+			<option value={university}></option>
 		{/each}
-	</Input>
+	</datalist>
 </InputGroup>
 
 <style>

@@ -167,12 +167,15 @@
 		:global(.custom-label) {
 			width: 75px;
 			font-size: 0.75em;
+			text-overflow: ellipsis;
+
 		}
 	}
 	@media (max-width: 767px) {
 		:global(.custom-label) {
 			width: 75px;
 			font-size: 0.75em;
+			text-overflow: ellipsis;
 		}
 	}
 	:global(.input-group .form-control) {
