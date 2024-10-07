@@ -16,6 +16,9 @@
 			<NavLink href="/submit">Submit Lifts</NavLink>
 		</NavItem>
 		<NavItem>
+			<NavLink href="/faq">FAQ</NavLink>
+		</NavItem>
+		<NavItem>
 			<NavLink href="/profile">
 				{#if $user}
 					Profile

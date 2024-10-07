@@ -82,7 +82,7 @@
 			{#each topLifts as lift (lift.rank)}
 				<Row>
 					{#each columns as column}
-						<Cell numeric={column.numeric}>{lift[column.key]}</Cell>
+						<Cell numeric={column.numeric} id={column.key === "displayName" ? lift[column.key] : ""}>{lift[column.key]}</Cell>
 					{/each}
 				</Row>
 			{/each}
