@@ -6,7 +6,7 @@
 <Navbar color="dark" dark expand="md">
 	<NavbarBrand href="/" style={'color: #f35151'}
 		><img class="logo" alt="Collegiate Strength Logo" src="/Logo.svg" />
-		Beta V0.1.2
+		Beta V0.1.3
 	</NavbarBrand>
 	<Nav navbar>
 		<NavItem>
