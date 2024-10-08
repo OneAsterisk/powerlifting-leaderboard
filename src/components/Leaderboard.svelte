@@ -12,6 +12,7 @@
 	onMount(() => {
 		unsubscribe = getAllLifts((updatedLifts) => {
 			topLifts = updatedLifts;
+			console.log(topLifts);
 			handleSort();
 		});
 	});
@@ -34,7 +35,7 @@
 		});
 		topLifts = topLifts;
 	}
-
+	console.log(topLifts);
 	const columns: { key: keyof Lift; label: string; numeric?: boolean; sortable?: boolean }[] = [
 		{ key: 'rank', label: 'Rank' },
 		{ key: 'displayName', label: 'Name' },
@@ -82,7 +83,9 @@
 			{#each topLifts as lift (lift.rank)}
 				<Row>
 					{#each columns as column}
-						<Cell numeric={column.numeric} id={column.key === "displayName" ? lift[column.key] : ""}>{lift[column.key]}</Cell>
+						<Cell numeric={column.numeric} id={column.key === 'displayName' ? lift[column.key] : ''}
+							>{lift[column.key]}</Cell
+						>
 					{/each}
 				</Row>
 			{/each}

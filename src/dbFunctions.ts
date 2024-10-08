@@ -129,15 +129,18 @@ export const submitLift = async (
 // Function to get top lifts
 export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => {
 	const q = query(collection(db, 'lifts'), orderBy('dotsScore', 'desc'));
+	let count = 0;
 	const userIds = new Set<string>();
 	const unsubscribe = onSnapshot(q, (querySnapshot) => {
 		const topLifts = querySnapshot.docs
 			.map((doc, index) => {
 				const data = doc.data() as Lift & { displayName: string };
 				if (!userIds.has(data.userId)) {
+					count++;
 					userIds.add(data.userId);
+					console.log(index);
 					return {
-						rank: index + 1,
+						rank: count,
 						...data,
 						formattedDate: formatDate(data.timestamp),
 						selectedUniversity: data.selectedUniversity || 'Not Specified'
@@ -149,7 +152,6 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 
 		callback(topLifts);
 	});
-
 	return unsubscribe;
 };
 
