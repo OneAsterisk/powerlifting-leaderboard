@@ -71,7 +71,8 @@ export const submitLift = async (
 	bodyWeight: number,
 	age: number,
 	gender: string,
-	selectedUniversity: string
+	selectedUniversity: string,
+	liftUID: string,
 ): Promise<void> => {
 	if (user) {
 		try {
@@ -91,6 +92,7 @@ export const submitLift = async (
 				dotsScore,
 				selectedUniversity,
 				total,
+				liftUID,
 				timestamp: serverTimestamp()
 			});
 
@@ -113,6 +115,7 @@ export const submitLift = async (
 							total,
 							dotsScore,
 							selectedUniversity,
+							liftUID,
 							timestamp: serverTimestamp()
 						}
 					}
