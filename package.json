@@ -51,6 +51,7 @@
 		"@sveltestrap/sveltestrap": "^6.2.7",
 		"bootstrap": "^5.3.3",
 		"firebase": "^10.13.2",
-		"sass": "^1.63.6"
+		"sass": "^1.63.6",
+		"uuid": "^10.0.0"
 	}
 }
