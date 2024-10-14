@@ -68,10 +68,11 @@
 					age,
 					gender,
 					selectedUniversity,
-					newUUID
+					newUUID,
+					liftType,
 				);
 				alert('Lift submitted successfully!');
-				// Optionally reset form fields here
+				
 			} catch (error) {
 				console.error('Error submitting lift:', error);
 				alert('Error submitting lift. Please try again.');
