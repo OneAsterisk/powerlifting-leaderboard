@@ -96,7 +96,8 @@
 		{ key: 'squat', label: 'Squat', numeric: true },
 		{ key: 'bench', label: 'Bench', numeric: true },
 		{ key: 'deadlift', label: 'Deadlift', numeric: true },
-		{ key: 'total', label: 'Total', numeric: true }
+		{ key: 'total', label: 'Total', numeric: true },
+		{ key: 'selectedUniversity', label: 'University' },
 	];
 </script>
 
