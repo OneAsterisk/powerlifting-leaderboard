@@ -118,6 +118,7 @@ export const submitLift = async (
 							dotsScore,
 							selectedUniversity,
 							liftUID,
+							liftType,
 							timestamp: serverTimestamp()
 						}
 					}
