@@ -3,12 +3,12 @@
 	import { userInfoStore } from '../../stores/userInfoStore';
 	import { auth, provider } from '$lib/firebase';
 	import { signInWithPopup, signOut } from 'firebase/auth';
-	import { Button, Form, FormGroup, InputGroup } from '@sveltestrap/sveltestrap';
+	import { Button, Form, FormGroup, InputGroup, Modal, ModalBody, ModalHeader, ModalFooter } from '@sveltestrap/sveltestrap';
 	import { onMount, onDestroy } from 'svelte';
-	import { getUserLifts, updateUserInfo } from '../../dbFunctions';
+	import { getUserLifts, updateUserInfo, getUserInfoNew } from '../../dbFunctions';
 	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
-	import type { Lift } from '../../types';
+	import type { Lift, UserInfo } from '../../types';
 	import UniversitySelector from '../../components/UniversitySelector.svelte';
 	import EditLiftForm from '../../components/EditLiftForm.svelte';
 
@@ -22,14 +22,26 @@
 	let unsubscribeUser: (() => void) | undefined;
 	let unsubscribeLifts: (() => void) | undefined;
 	let hasInitialized = false;
-	let open = false;
+	let userInfo : UserInfo;
+	let openEditModal = false;
+	let openUpdateModal = false;
 	onMount(() => {
 		unsubscribeUser = user.subscribe((currentUser) => {
 			if (currentUser && $user) {
 				unsubscribeLifts = getUserLifts($user.uid, (lifts) => {
 					userLifts = lifts;
 				});
-				userInfoStore.fetchUserInfo(currentUser.uid);
+				
+				// Use getUserInfoNew with its callback
+				const unsubscribeUserInfo = getUserInfoNew($user.uid, (info) => {
+					userInfo = info;
+				});
+
+				// Don't forget to unsubscribe when component is destroyed
+				return () => {
+					if (unsubscribeLifts) unsubscribeLifts();
+					if (unsubscribeUserInfo) unsubscribeUserInfo();
+				};
 			} else {
 				userInfoStore.clearUserInfo();
 			}
@@ -42,12 +54,6 @@
 		}
 		userInfoStore.clearUserInfo();
 	});
-
-	$: if ($userInfoStore && !hasInitialized) {
-		selectedUniversity = $userInfoStore.selectedUniversity || '';
-		gender = $userInfoStore.gender || '';
-		hasInitialized = true;
-	}
 
 	function handleSort() {
 		userLifts.sort((a, b) => {
@@ -82,17 +88,8 @@
 
 	const updateInfo = async (event: Event) => {
 		event.preventDefault();
-		if ($user) {
-			try {
-				await updateUserInfo($user, selectedUniversity);
-				alert(`Information updated successfully!`);
-			} catch (error) {
-				console.error(`Error updating info: `, error);
-				alert(`Error updating info. Please try again.`);
-			}
-		}
+		toggleUpdateModal;
 	};
-
 	const columns: { key: keyof Lift; label: string; numeric?: boolean; sortable?: boolean }[] = [
 		{ key: 'dotsScore', label: 'Dots', sortable: true },
 		{ key: 'squat', label: 'Squat', numeric: true },
@@ -105,7 +102,7 @@
 	let editingLift: Lift | null = null;
 	// let open = false;
 	const editLift = (lift: Lift) => {
-		open = true;
+		openEditModal = true;
 		editingLift = lift;
 	};
 
@@ -117,6 +114,11 @@
 			});
 		}
 	}
+
+	const toggleUpdateModal = () => {
+		openUpdateModal = !openUpdateModal;
+	};
+
 </script>
 
 <svelte:head>
@@ -129,8 +131,19 @@
 
 	<!-- Main content container -->
 	<div class="main-content">
+		<Modal isOpen={openUpdateModal}>
+			<ModalHeader>Update Your Information</ModalHeader>
+			<ModalBody>
+				Some stuff and things
+				<!-- Form Inputs for userName -->
+			</ModalBody>
+			<ModalFooter>
+				<Button color="primary" on:click={updateInfo}>Update</Button>
+				<Button color="secondary" on:click={() => toggleUpdateModal()}>Cancel</Button>
+			</ModalFooter>
+		</Modal>
 		{#if editingLift}
-			<EditLiftForm bind:open lift={editingLift} on:liftUpdated={handleLiftUpdated} />
+			<EditLiftForm bind:open={openEditModal} lift={editingLift} on:liftUpdated={handleLiftUpdated} />
 		{/if}
 		<!-- Left side: Lifts table -->
 		<div class="leaderboard-container">
@@ -179,15 +192,11 @@
 			</DataTable>
 		</div>
 		<aside class="settings-panel">
-			{#if $userInfoStore}
-				<Form on:submit={updateInfo}>
-					<FormGroup>
-						<InputGroup>
-							<UniversitySelector bind:selectedUniversity />
-						</InputGroup>
-					</FormGroup>
-					<Button type="submit">Update Settings</Button>
-				</Form>
+
+			{#if userInfo}
+				<h2>Settings</h2>
+				<div class="settings-option"><p>School: {userInfo.selectedUniversity}</p></div>
+				<Button type="button" on:click={toggleUpdateModal}>Update Info</Button>
 			{:else}
 				<p>Loading user information...</p>
 			{/if}
@@ -226,7 +235,15 @@
 		padding: 10px;
 		border-radius: 8px;
 	}
-
+	.settings-option {
+		width: 100%;
+		border:  1px solid #5b5656;
+		border-radius: 5px;
+	}
+	.settings-option p {
+		width: 75%;
+		text-overflow: clip;
+	}
 	:global(.mdc-data-table) {
 		width: 100%;
 		border: 1px solid #5b5656;
@@ -269,7 +286,9 @@
 		.settings-panel {
 			padding: 15px; /* Optional: Adjust padding for better spacing on mobile */
 		}
-
+		:global(.modal-header, .modal-body, .modal-footer) {
+			background-color: #2c2c2c;
+		}
 		h1 {
 			font-size: 1.5rem; /* Optional: Adjust heading size for better readability */
 		}

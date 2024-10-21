@@ -108,7 +108,8 @@
 </div>
 
 <style>
- :global(.modal-header, .modal-body) {
+ :global(.modal-header, .modal-body, .modal-footer) {
     background-color: #2c2c2c;
+    border-color: #444343;
  }
 </style>
