@@ -10,6 +10,8 @@
 	import IconButton from '@smui/icon-button';
 	import type { Lift } from '../../types';
 	import UniversitySelector from '../../components/UniversitySelector.svelte';
+	import EditLiftForm from '../../components/EditLiftForm.svelte';
+
 
 	const title = 'Collegiate Strength - User Profile';
 	let userLifts: Lift[] = [];
@@ -20,7 +22,7 @@
 	let unsubscribeUser: (() => void) | undefined;
 	let unsubscribeLifts: (() => void) | undefined;
 	let hasInitialized = false;
-
+	let open = false;
 	onMount(() => {
 		unsubscribeUser = user.subscribe((currentUser) => {
 			if (currentUser && $user) {
@@ -99,6 +101,22 @@
 		{ key: 'total', label: 'Total', numeric: true },
 		{ key: 'selectedUniversity', label: 'University' },
 	];
+
+	let editingLift: Lift | null = null;
+	// let open = false;
+	const editLift = (lift: Lift) => {
+		open = true;
+		editingLift = lift;
+	};
+
+	const handleLiftUpdated = () => {
+		editingLift = null;
+		if($user){
+			unsubscribeLifts = getUserLifts($user.uid, (lifts) => {
+				userLifts = lifts;
+			});
+		}
+	}
 </script>
 
 <svelte:head>
@@ -111,6 +129,9 @@
 
 	<!-- Main content container -->
 	<div class="main-content">
+		{#if editingLift}
+			<EditLiftForm bind:open lift={editingLift} on:liftUpdated={handleLiftUpdated} />
+		{/if}
 		<!-- Left side: Lifts table -->
 		<div class="leaderboard-container">
 			<DataTable
@@ -138,14 +159,20 @@
 								{/if}
 							</Cell>
 						{/each}
+						<Cell>
+							<Label><span>Action</span></Label>
+						</Cell>
 					</Row>
 				</Head>
 				<Body>
-					{#each userLifts as lift (lift.total)}
+					{#each userLifts as lift}
 						<Row>
 							{#each columns as column}
 								<Cell numeric={column.numeric}>{lift[column.key]}</Cell>
 							{/each}
+							<Cell>
+								<Label><Button on:click={() => editLift(lift)}>Edit</Button></Label>
+							</Cell>
 						</Row>
 					{/each}
 				</Body>

@@ -10,10 +10,17 @@ import {
 	orderBy,
 	limit,
 	onSnapshot,
-	serverTimestamp
+	updateDoc,
+	serverTimestamp,
+	where,
+	getDocs,
+	deleteDoc
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import type { Lift } from './types';
+import { v4 as uuidv4 } from 'uuid';
+
+// import { updated } from '$app/stores';
 export interface UserInfo {
 	displayName: string;
 	gender: string;
@@ -146,7 +153,6 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 				if (!userIds.has(data.userId)) {
 					count++;
 					userIds.add(data.userId);
-					console.log(index);
 					return {
 						rank: count,
 						...data,
@@ -234,3 +240,159 @@ function formatDate(timestamp: { toDate: () => Date }): string {
 	const date = timestamp.toDate();
 	return date.toLocaleDateString();
 }
+
+export const deleteLift = async (
+    user: User,
+    liftUID: string | undefined
+): Promise<void> => {
+    if (user) {
+        try {
+            // Delete from 'lifts' collection
+            const q = query(
+                collection(db, 'lifts'),
+                where('userId', '==', user.uid),
+                where('liftUID', '==', liftUID)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const docToDelete = querySnapshot.docs[0];
+                await deleteDoc(docToDelete.ref);
+            }
+
+            // Delete from 'lifters' collection
+            const lifterDocRef = doc(db, 'lifters', user.uid);
+            const lifterDocSnap = await getDoc(lifterDocRef);
+
+            if (lifterDocSnap.exists()) {
+                const lifterData = lifterDocSnap.data() as LifterData;
+                
+                if (lifterData.lifts && lifterData.lifts[liftUID]) {
+                    delete lifterData.lifts[liftUID];
+                    
+                    await updateDoc(lifterDocRef, {
+                        lifts: lifterData.lifts
+                    });
+                } 
+            } 
+
+        } catch (error) {
+            console.error('Error deleting lift:', error);
+            console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+            throw error;
+        }
+    } else {
+        console.error('User not authenticated');
+        throw new Error('User not authenticated');
+    }
+};
+
+
+export const updateLift = async (
+    user: User,
+    liftUID: string | undefined,
+    updatedLift: Partial<Lift>
+): Promise<void> => {
+    if (user) {
+        try {
+            let liftDocId: string;
+            const total: number = (updatedLift.squat ?? 0) + (updatedLift.bench ?? 0) + (updatedLift.deadlift ?? 0);
+            const dotsScore: number = Calculate_DOTS(updatedLift.bodyWeight ?? 0, total, updatedLift.gender ?? 'Male');
+
+            if (!liftUID) {
+                // If liftUID is not provided, create a new document
+                const newLiftRef = doc(collection(db, 'lifts'));
+                liftUID = uuidv4(); // Generate a new UUID for liftUID
+                await setDoc(newLiftRef, {
+                    userId: user.uid,
+                    liftUID,
+                    ...updatedLift,
+                    total,
+                    dotsScore,
+                    timestamp: serverTimestamp()
+                });
+            } else {
+                // If liftUID is provided, try to update existing document
+                const q = query(
+                    collection(db, 'lifts'),
+                    where('userId', '==', user.uid),
+                    where('liftUID', '==', liftUID)
+                );
+                let querySnapshot = await getDocs(q);
+
+                // If no document found with liftUID, try searching with liftID for legacy support
+                if (querySnapshot.empty) {
+                    const qLegacy = query(
+                        collection(db, 'lifts'),
+                        where('userId', '==', user.uid),
+                        where('liftID', '==', liftUID)
+                    );
+                    querySnapshot = await getDocs(qLegacy);
+                }
+
+                if (querySnapshot.empty) {
+                    // If still no matching document found, create a new one
+                    const newLiftRef = doc(collection(db, 'lifts'));
+                    await setDoc(newLiftRef, {
+                        userId: user.uid,
+						displayName: user.displayName,
+                        liftUID,
+                        ...updatedLift,
+                        total,
+                        dotsScore,
+                        timestamp: serverTimestamp()
+                    });
+                } else {
+                    // Update existing document
+                    const docToUpdate = querySnapshot.docs[0];
+                    
+                    await updateDoc(docToUpdate.ref, {
+                        ...updatedLift,
+                        liftUID, // Ensure we're using liftUID going forward
+                        total,
+                        dotsScore,
+                        timestamp: serverTimestamp()
+                    });
+                }
+            }
+
+            // Update the lift in the 'lifters' collection
+            const lifterDocRef = doc(db, 'lifters', user.uid);
+            const lifterDocSnap = await getDoc(lifterDocRef);
+
+            if (lifterDocSnap.exists()) {
+                const lifterData = lifterDocSnap.data() as LifterData;
+                
+                // Update or add the lift in the lifter's document
+                lifterData.lifts = lifterData.lifts || {};
+                lifterData.lifts[liftUID] = {
+                    ...(updatedLift as Lift),
+                    liftUID,
+                    total,
+                    dotsScore,
+                    timestamp: serverTimestamp()
+                };
+
+                // Remove old liftID entry if it exists
+                if (lifterData.lifts[updatedLift.liftID as string]) {
+                    delete lifterData.lifts[updatedLift.liftID as string];
+                }
+
+                await updateDoc(lifterDocRef, {
+                    lifts: lifterData.lifts
+                });
+            } else {
+                console.error(`Lifter document not found for user: ${user.uid}`);
+                throw new Error('Lifter document not found');
+            }
+
+        } catch (error) {
+            console.error('Error updating lift:', error);
+            console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+            throw error;
+        }
+    } else {
+        console.error('User not authenticated');
+        throw new Error('User not authenticated');
+    }
+};

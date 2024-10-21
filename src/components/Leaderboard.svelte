@@ -12,7 +12,6 @@
 	onMount(() => {
 		unsubscribe = getAllLifts((updatedLifts) => {
 			topLifts = updatedLifts;
-			console.log(topLifts);
 			handleSort();
 		});
 	});
@@ -35,7 +34,6 @@
 		});
 		topLifts = topLifts;
 	}
-	console.log(topLifts);
 	const columns: { key: keyof Lift; label: string; numeric?: boolean; sortable?: boolean }[] = [
 		{ key: 'rank', label: 'Rank' },
 		{ key: 'displayName', label: 'Name' },
