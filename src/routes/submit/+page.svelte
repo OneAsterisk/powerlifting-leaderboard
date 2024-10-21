@@ -15,8 +15,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { userInfoStore } from '../../stores/userInfoStore';
 	import { v4 as uuidv4 } from 'uuid';
-	import { getUserInfo, submitLift } from '../../dbFunctions';
-	import type { UserInfo } from '../../dbFunctions';
+	import { getUserInfoNew, submitLift } from '../../dbFunctions';
+	import type { UserInfo } from '../../types';
 
 	let unsubscribe: (() => void) | undefined;
 

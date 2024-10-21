@@ -17,15 +17,10 @@ import {
 	deleteDoc
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
-import type { Lift } from './types';
+import type { Lift, UserInfo } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 // import { updated } from '$app/stores';
-export interface UserInfo {
-	displayName: string;
-	gender: string;
-	selectedUniversity: string;
-}
 // Interface for a lifter's document
 interface LifterData {
 	userId: string;
@@ -54,19 +49,16 @@ function Calculate_DOTS(bodyWeight: number, total: number, gender: string): numb
 	return parseFloat(score.toFixed(2));
 }
 
-export const updateUserInfo = async (user: User, selectedUniversity: string): Promise<void> => {
-	if (user) {
-		try {
-			const updatedData = {
-				selectedUniversity: selectedUniversity
-			};
-			const lifterDocRef = doc(db, 'lifters', user.uid);
-			await setDoc(lifterDocRef, updatedData, { merge: true });
-		} catch (error) {
-			console.error('Error updating user info:', error);
-			throw error;
-		}
-	}
+export const updateUserInfo = async (user: User, updatedInfo: Partial<UserInfo>): Promise<void> => {
+    if (user) {
+        try {
+            const lifterDocRef = doc(db, 'lifters', user.uid);
+            await setDoc(lifterDocRef, updatedInfo, { merge: true });
+        } catch (error) {
+            console.error('Error updating user info:', error);
+            throw error;
+        }
+    }
 };
 
 // Function to submit a new lift
@@ -170,44 +162,45 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 };
 
 export const getUserInfoNew = (
-	userId: string,
-	callback: (userInfo: UserInfo | null) => void
+    userId: string,
+    callback: (userInfo: UserInfo | null) => void
 ): (() => void) => {
-	const q = query(collection(db, 'lifters'), orderBy('userId'), limit(1));
-	const unsubscribe = onSnapshot(q, (querySnapshot) => {
-		const userInfo = querySnapshot.docs.map((doc) => {
-			const data = doc.data() as UserInfo;
-			return {
-				displayName: data.displayName,
-				gender: data.gender,
-				selectedUniversity: data.selectedUniversity || 'Not Specified'
-			};
-		});
-		callback(userInfo[0]);
-	});
-
-	return unsubscribe;
+    const q = query(collection(db, 'lifters'), orderBy('userId'), limit(1));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const userInfo = querySnapshot.docs.map((doc) => {
+            const data = doc.data() as UserInfo;
+            return {
+                displayName: data.displayName,
+                userName: data.userName || data.displayName, // Fallback to displayName if userName is not set
+                gender: data.gender,
+                selectedUniversity: data.selectedUniversity || 'Not Specified',
+                displayNamePreference: data.displayNamePreference
+            };
+        });
+        callback(userInfo[0]);
+    });
+    return unsubscribe;
 };
-export const getUserInfo = async (userId: string): Promise<UserInfo | null> => {
-	try {
-		const lifterRef = doc(db, 'lifters', userId);
-		const lifterDoc = await getDoc(lifterRef);
+// export const getUserInfo = async (userId: string): Promise<UserInfo | null> => {
+// 	try {
+// 		const lifterRef = doc(db, 'lifters', userId);
+// 		const lifterDoc = await getDoc(lifterRef);
 
-		if (lifterDoc.exists()) {
-			const data = lifterDoc.data() as LifterData;
-			return {
-				displayName: data.displayName,
-				gender: data.gender,
-				selectedUniversity: data.selectedUniversity || '' // Add a default value if it doesn't exist
-			};
-		} else {
-			return null;
-		}
-	} catch (error) {
-		console.error('Error fetching user information:', error);
-		throw error;
-	}
-};
+// 		if (lifterDoc.exists()) {
+// 			const data = lifterDoc.data() as LifterData;
+// 			return {
+// 				displayName: data.displayName,
+// 				gender: data.gender,
+// 				selectedUniversity: data.selectedUniversity || '' // Add a default value if it doesn't exist
+// 			};
+// 		} else {
+// 			return null;
+// 		}
+// 	} catch (error) {
+// 		console.error('Error fetching user information:', error);
+// 		throw error;
+// 	}
+// };
 // Function to get lifts for a specific user
 export const getUserLifts = (userId: string, callback: (lifts: Lift[]) => void): (() => void) => {
 	const lifterRef = doc(db, 'lifters', userId);

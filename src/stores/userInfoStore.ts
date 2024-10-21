@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
-import { getUserInfoNew, type UserInfo } from '../dbFunctions';
+import { getUserInfoNew} from '../dbFunctions';
+import type { UserInfo } from '../types';
 
 function createUserInfoStore() {
     const { subscribe, set, update } = writable<UserInfo | null>(null);
