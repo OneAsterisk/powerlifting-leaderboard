@@ -21,7 +21,6 @@ export interface Lift {
 }
 
 export interface UserInfo {
-	displayNamePreference: 'displayName' | 'userName';
 	displayName: string;
 	gender: string;
 	selectedUniversity: string;

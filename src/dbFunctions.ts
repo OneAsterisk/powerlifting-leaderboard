@@ -161,11 +161,11 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 	return unsubscribe;
 };
 
-export const getUserInfoNew = (
+export const getUserInfo = (
 	userId: string,
 	callback: (userInfo: UserInfo | null) => void
 ): (() => void) => {
-	const q = query(collection(db, 'lifters'), orderBy('userId'), limit(1));
+	const q = query(collection(db, 'lifters'), where('userId', '==', userId), limit(1));
 	const unsubscribe = onSnapshot(q, (querySnapshot) => {
 		const userInfo = querySnapshot.docs.map((doc) => {
 			const data = doc.data() as UserInfo;
@@ -173,34 +173,15 @@ export const getUserInfoNew = (
 				displayName: data.displayName,
 				userName: data.userName || data.displayName, // Fallback to displayName if userName is not set
 				gender: data.gender,
-				selectedUniversity: data.selectedUniversity || 'Not Specified',
-				displayNamePreference: data.displayNamePreference
+				selectedUniversity: data.selectedUniversity || 'Not Specified'
 			};
 		});
+		console.log(userInfo);
 		callback(userInfo[0]);
 	});
 	return unsubscribe;
 };
-// export const getUserInfo = async (userId: string): Promise<UserInfo | null> => {
-// 	try {
-// 		const lifterRef = doc(db, 'lifters', userId);
-// 		const lifterDoc = await getDoc(lifterRef);
 
-// 		if (lifterDoc.exists()) {
-// 			const data = lifterDoc.data() as LifterData;
-// 			return {
-// 				displayName: data.displayName,
-// 				gender: data.gender,
-// 				selectedUniversity: data.selectedUniversity || '' // Add a default value if it doesn't exist
-// 			};
-// 		} else {
-// 			return null;
-// 		}
-// 	} catch (error) {
-// 		console.error('Error fetching user information:', error);
-// 		throw error;
-// 	}
-// };
 // Function to get lifts for a specific user
 export const getUserLifts = (userId: string, callback: (lifts: Lift[]) => void): (() => void) => {
 	const lifterRef = doc(db, 'lifters', userId);

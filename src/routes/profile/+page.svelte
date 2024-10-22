@@ -2,16 +2,26 @@
 	import { user } from '../../stores/userStore';
 	import { userInfoStore } from '../../stores/userInfoStore';
 	import { auth, provider } from '$lib/firebase';
-	import { signInWithPopup, signOut } from 'firebase/auth';
-	import { Button, Form, FormGroup, InputGroup, Modal, ModalBody, ModalHeader, ModalFooter } from '@sveltestrap/sveltestrap';
+	import { signInWithPopup, signOut, type User } from 'firebase/auth';
+	import {
+		Button,
+		Form,
+		FormGroup,
+		InputGroup,
+		Modal,
+		ModalBody,
+		ModalHeader,
+		ModalFooter,
+		InputGroupText,
+		Input
+	} from '@sveltestrap/sveltestrap';
 	import { onMount, onDestroy } from 'svelte';
-	import { getUserLifts, updateUserInfo, getUserInfoNew } from '../../dbFunctions';
+	import { getUserLifts, updateUserInfo, getUserInfo } from '../../dbFunctions';
 	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 	import type { Lift, UserInfo } from '../../types';
 	import UniversitySelector from '../../components/UniversitySelector.svelte';
 	import EditLiftForm from '../../components/EditLiftForm.svelte';
-
 
 	const title = 'Collegiate Strength - User Profile';
 	let userLifts: Lift[] = [];
@@ -22,19 +32,26 @@
 	let unsubscribeUser: (() => void) | undefined;
 	let unsubscribeLifts: (() => void) | undefined;
 	let hasInitialized = false;
-	let userInfo : UserInfo;
+	let userInfo: UserInfo;
 	let openEditModal = false;
 	let openUpdateModal = false;
+	let updatedUserInfo = {
+		userName: '',
+		selectedUniversity: ''
+	};
 	onMount(() => {
 		unsubscribeUser = user.subscribe((currentUser) => {
 			if (currentUser && $user) {
 				unsubscribeLifts = getUserLifts($user.uid, (lifts) => {
 					userLifts = lifts;
 				});
-				
+
 				// Use getUserInfoNew with its callback
-				const unsubscribeUserInfo = getUserInfoNew($user.uid, (info) => {
-					userInfo = info;
+				const unsubscribeUserInfo = getUserInfo($user.uid, (info) => {
+					if (info !== null) {
+						userInfo = info;
+						updatedUserInfo.selectedUniversity = info.selectedUniversity;
+					}
 				});
 
 				// Don't forget to unsubscribe when component is destroyed
@@ -47,7 +64,6 @@
 			}
 		});
 	});
-
 	onDestroy(() => {
 		if (unsubscribeUser) {
 			unsubscribeUser();
@@ -96,7 +112,7 @@
 		{ key: 'bench', label: 'Bench', numeric: true },
 		{ key: 'deadlift', label: 'Deadlift', numeric: true },
 		{ key: 'total', label: 'Total', numeric: true },
-		{ key: 'selectedUniversity', label: 'University' },
+		{ key: 'selectedUniversity', label: 'University' }
 	];
 
 	let editingLift: Lift | null = null;
@@ -105,20 +121,29 @@
 		openEditModal = true;
 		editingLift = lift;
 	};
-
+	const handleUpdateSettings = async () => {
+		if ($user) {
+			await updateUserInfo($user, updatedUserInfo);
+		}
+	};
 	const handleLiftUpdated = () => {
 		editingLift = null;
-		if($user){
+		if ($user) {
 			unsubscribeLifts = getUserLifts($user.uid, (lifts) => {
 				userLifts = lifts;
 			});
 		}
-	}
-
-	const toggleUpdateModal = () => {
-		openUpdateModal = !openUpdateModal;
 	};
 
+	const toggleUpdateModal = () => {
+		if (!openUpdateModal) {
+			updatedUserInfo = {
+				userName: userInfo.userName,
+				selectedUniversity: userInfo.selectedUniversity
+			};
+		}
+		openUpdateModal = !openUpdateModal;
+	};
 </script>
 
 <svelte:head>
@@ -126,7 +151,6 @@
 </svelte:head>
 
 {#if $user}
-	<Button on:click={logout}>Sign Out</Button>
 	<h1>Welcome, {$user.displayName}!</h1>
 
 	<!-- Main content container -->
@@ -134,16 +158,34 @@
 		<Modal isOpen={openUpdateModal}>
 			<ModalHeader>Update Your Information</ModalHeader>
 			<ModalBody>
-				Some stuff and things
-				<!-- Form Inputs for userName -->
+				<Form on:submit={handleUpdateSettings}>
+					<FormGroup>
+						<InputGroup>
+							<InputGroupText class="custom-label">Username:</InputGroupText>
+
+							<Input
+								type="text"
+								id="userName"
+								bind:value={updatedUserInfo.userName}
+								placeholder={'Previous: ' + userInfo.userName}
+								style="text-overflow: ellipsis; border-top-right-radius: 5px; border-bottom-right-radius: 5px;"
+							/>
+						</InputGroup>
+					</FormGroup>
+					<FormGroup>
+						<UniversitySelector bind:selectedUniversity={updatedUserInfo.selectedUniversity} />
+					</FormGroup>
+				</Form>
+				<Button color="primary" type="submit" on:click={handleUpdateSettings}>Update</Button>
+				<Button color="secondary" on:click={toggleUpdateModal}>Cancel</Button>
 			</ModalBody>
-			<ModalFooter>
-				<Button color="primary" on:click={updateInfo}>Update</Button>
-				<Button color="secondary" on:click={() => toggleUpdateModal()}>Cancel</Button>
-			</ModalFooter>
 		</Modal>
 		{#if editingLift}
-			<EditLiftForm bind:open={openEditModal} lift={editingLift} on:liftUpdated={handleLiftUpdated} />
+			<EditLiftForm
+				bind:open={openEditModal}
+				lift={editingLift}
+				on:liftUpdated={handleLiftUpdated}
+			/>
 		{/if}
 		<!-- Left side: Lifts table -->
 		<div class="leaderboard-container">
@@ -192,11 +234,20 @@
 			</DataTable>
 		</div>
 		<aside class="settings-panel">
-
 			{#if userInfo}
 				<h2>Settings</h2>
-				<div class="settings-option"><p>School: {userInfo.selectedUniversity}</p></div>
-				<Button type="button" on:click={toggleUpdateModal}>Update Info</Button>
+				<div class="settings-option">
+					<div class="settings-label">Username:</div>
+					<div class="settings-label">{userInfo.userName}</div>
+				</div>
+				<div class="settings-option">
+					<div class="settings-label">University:</div>
+					<div class="settings-label">{userInfo.selectedUniversity}</div>
+				</div>
+				<div style="display: flex; justify-content: space-between; width: 100%">
+					<Button type="button" on:click={toggleUpdateModal} color="primary">Update Info</Button>
+					<Button on:click={logout} color="danger">Sign Out</Button>
+				</div>
 			{:else}
 				<p>Loading user information...</p>
 			{/if}
@@ -212,7 +263,17 @@
 		color: var(--dark-accent-blue);
 		text-align: center;
 	}
-
+	:global(.custom-label) {
+		font-weight: bold;
+		display: flex;
+		justify-content: center;
+		width: 7.5rem;
+		border-radius: 0.25rem 0 0 0.25rem;
+		padding: 0.375rem 0.75rem;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
 	.main-content {
 		display: flex;
 		flex-direction: row;
@@ -231,18 +292,27 @@
 
 	.settings-panel {
 		flex: 1;
-		/* background-color: #f9f9f9; */
+		background-color: #2a2a2e;
 		padding: 10px;
 		border-radius: 8px;
 	}
 	.settings-option {
+		display: flex;
+		flex-direction: row;
+		row-gap: 1.5rem;
+		align-items: center;
 		width: 100%;
-		border:  1px solid #5b5656;
+		border: 1px solid #2a2a2e;
 		border-radius: 5px;
+		margin-bottom: 15px; /* Add this line to create space between items */
 	}
-	.settings-option p {
+	.settings-label:first-child {
+		width: 25%;
+	}
+	.settings-label {
 		width: 75%;
-		text-overflow: clip;
+		text-overflow: ellipsis;
+		overflow: hidden;
 	}
 	:global(.mdc-data-table) {
 		width: 100%;
@@ -288,6 +358,11 @@
 		}
 		:global(.modal-header, .modal-body, .modal-footer) {
 			background-color: #2c2c2c;
+			border-color: #444343;
+		}
+		:global(.modal-body) {
+			border-bottom-left-radius: 3%;
+			border-bottom-right-radius: 3%;
 		}
 		h1 {
 			font-size: 1.5rem; /* Optional: Adjust heading size for better readability */
