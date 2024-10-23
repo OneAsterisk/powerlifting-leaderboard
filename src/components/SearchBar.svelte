@@ -1,21 +1,23 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { ButtonGroup, Button } from '@sveltestrap/sveltestrap';
+	import { ButtonGroup, Button, Tooltip } from '@sveltestrap/sveltestrap';
 	import { searchPeople } from '../dbFunctions';
 	let searchQuery = '';
 	let searchResults = [];
 	let showResults = false;
 	let searchType = 'universities'; // or 'people'
-	let searchTimeout: NodeJS.Timeout;
+	let searchTimeout: ReturnType<typeof setTimeout>;
 
-	async function search() {
+	// Watch for changes in `searchQuery` and `searchType`
+	$: if (searchQuery.length >= 2) {
+		search();
+	} else {
+		searchResults = [];
+		showResults = false;
+	}
+
+	function search() {
 		clearTimeout(searchTimeout);
-
-		if (searchQuery.length < 2) {
-			searchResults = [];
-			showResults = false;
-			return;
-		}
 
 		searchTimeout = setTimeout(async () => {
 			if (searchType === 'universities') {
@@ -29,25 +31,15 @@
 		}, 300);
 	}
 
-	async function selectResult(result) {
+	function selectResult(result) {
 		showResults = false;
 		searchQuery = '';
 
 		if (searchType === 'universities') {
-			await goto(`/uni/${encodeURIComponent(result)}`, {
-				invalidateAll: true
-			});
+			goto(`/uni/${encodeURIComponent(result)}`);
 		} else {
-			await goto(`/profile/${encodeURIComponent(result.name)}`, {
-				invalidateAll: true
-			});
+			goto(`/profile/${encodeURIComponent(result.name)}`);
 		}
-	}
-	$: if (searchQuery) {
-		search();
-	} else {
-		searchResults = [];
-		showResults = false;
 	}
 </script>
 
@@ -68,14 +60,17 @@
 			Users
 		</Button>
 	</ButtonGroup>
-
-	<input
-		type="text"
-		bind:value={searchQuery}
-		on:input={search}
-		placeholder={`Search ${searchType}...`}
-	/>
-
+	<div>
+		<input
+			type="text"
+			bind:value={searchQuery}
+			id="searchBar"
+			placeholder={`Search ${searchType}...`}
+		/>
+		<Tooltip placement="right" target="searchBar" isOpen={false}
+			>Searching is case sensitive!</Tooltip
+		>
+	</div>
 	{#if showResults && searchQuery}
 		<div class="search-results">
 			{#each searchResults as result}
