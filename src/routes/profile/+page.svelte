@@ -16,7 +16,7 @@
 		Input
 	} from '@sveltestrap/sveltestrap';
 	import { onMount, onDestroy } from 'svelte';
-	import { getUserLifts, updateUserInfo, getUserInfo } from '../../dbFunctions';
+	import { getUserLiftsPersonal, updateUserInfo, getUserInfo } from '../../dbFunctions';
 	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 	import type { Lift, UserInfo } from '../../types';
@@ -42,7 +42,7 @@
 	onMount(() => {
 		unsubscribeUser = user.subscribe((currentUser) => {
 			if (currentUser && $user) {
-				unsubscribeLifts = getUserLifts($user.uid, (lifts) => {
+				unsubscribeLifts = getUserLiftsPersonal($user.uid, (lifts) => {
 					userLifts = lifts;
 				});
 
@@ -129,7 +129,7 @@
 	const handleLiftUpdated = () => {
 		editingLift = null;
 		if ($user) {
-			unsubscribeLifts = getUserLifts($user.uid, (lifts) => {
+			unsubscribeLifts = getUserLiftsPersonal($user.uid, (lifts) => {
 				userLifts = lifts;
 			});
 		}
