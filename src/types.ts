@@ -2,8 +2,9 @@
 
 export interface Lift {
 	rank?: number;
-	displayName?: string;
+	displayName: string;
 	gender?: string;
+	userName?: string;
 	squat: number;
 	bench: number;
 	deadlift: number;

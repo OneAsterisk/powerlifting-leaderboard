@@ -160,8 +160,12 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 	});
 	return unsubscribe;
 };
-
-export const getUserInfo = (
+export const getUserName = async (displayName: string): Promise<string> => {
+	const q = query(collection(db, 'lifters'), where('displayName', '==', displayName), limit(1));
+	const querySnapshot = await getDocs(q);
+	const userName = querySnapshot.docs[0]?.data().userName ||  '';
+	return userName;
+};export const getUserInfo = (
 	userId: string,
 	callback: (userInfo: UserInfo | null) => void
 ): (() => void) => {
@@ -176,7 +180,6 @@ export const getUserInfo = (
 				selectedUniversity: data.selectedUniversity || 'Not Specified'
 			};
 		});
-		console.log(userInfo);
 		callback(userInfo[0]);
 	});
 	return unsubscribe;
