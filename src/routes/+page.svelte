@@ -11,5 +11,6 @@
 	<title>{title}</title>
 </svelte:head>
 <Theme theme="dark">
-	<Leaderboard />
+
+	<Leaderboard university={undefined}/>
 </Theme>

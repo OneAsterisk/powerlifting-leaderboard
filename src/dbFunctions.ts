@@ -10,15 +10,17 @@ import {
 	orderBy,
 	limit,
 	onSnapshot,
-	serverTimestamp
+	updateDoc,
+	serverTimestamp,
+	where,
+	getDocs,
+	deleteDoc
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
-import type { Lift } from './types';
-export interface UserInfo {
-	displayName: string;
-	gender: string;
-	selectedUniversity: string;
-}
+import type { Lift, UserInfo } from './types';
+import { v4 as uuidv4 } from 'uuid';
+
+// import { updated } from '$app/stores';
 // Interface for a lifter's document
 interface LifterData {
 	userId: string;
@@ -47,14 +49,11 @@ function Calculate_DOTS(bodyWeight: number, total: number, gender: string): numb
 	return parseFloat(score.toFixed(2));
 }
 
-export const updateUserInfo = async (user: User, selectedUniversity: string): Promise<void> => {
+export const updateUserInfo = async (user: User, updatedInfo: Partial<UserInfo>): Promise<void> => {
 	if (user) {
 		try {
-			const updatedData = {
-				selectedUniversity: selectedUniversity
-			};
 			const lifterDocRef = doc(db, 'lifters', user.uid);
-			await setDoc(lifterDocRef, updatedData, { merge: true });
+			await setDoc(lifterDocRef, updatedInfo, { merge: true });
 		} catch (error) {
 			console.error('Error updating user info:', error);
 			throw error;
@@ -73,7 +72,7 @@ export const submitLift = async (
 	gender: string,
 	selectedUniversity: string,
 	liftUID: string,
-	liftType: string,
+	liftType: string
 ): Promise<void> => {
 	if (user) {
 		try {
@@ -141,69 +140,73 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 	const userIds = new Set<string>();
 	const unsubscribe = onSnapshot(q, (querySnapshot) => {
 		const topLifts = querySnapshot.docs
-			.map((doc, index) => {
+			.map((doc) => {
 				const data = doc.data() as Lift & { displayName: string };
 				if (!userIds.has(data.userId)) {
 					count++;
 					userIds.add(data.userId);
-					console.log(index);
 					return {
 						rank: count,
 						...data,
 						formattedDate: formatDate(data.timestamp),
 						selectedUniversity: data.selectedUniversity || 'Not Specified'
-					};
+					} as Lift;
 				}
-				return undefined; // Explicitly return undefined
+				return null;
 			})
-			.filter((lift): lift is Lift => lift !== undefined); // Type guard to ensure Lift type
+			.filter((lift): lift is Lift => lift !== null);
 
 		callback(topLifts);
 	});
 	return unsubscribe;
 };
-
-export const getUserInfoNew = (
+export const getUserName = async (displayName: string): Promise<string> => {
+	const q = query(collection(db, 'lifters'), where('displayName', '==', displayName), limit(1));
+	const querySnapshot = await getDocs(q);
+	const userName = querySnapshot.docs[0]?.data().userName ||  '';
+	return userName;
+};export const getUserInfo = (
 	userId: string,
 	callback: (userInfo: UserInfo | null) => void
 ): (() => void) => {
-	const q = query(collection(db, 'lifters'), orderBy('userId'), limit(1));
+	const q = query(collection(db, 'lifters'), where('userId', '==', userId), limit(1));
 	const unsubscribe = onSnapshot(q, (querySnapshot) => {
 		const userInfo = querySnapshot.docs.map((doc) => {
 			const data = doc.data() as UserInfo;
 			return {
 				displayName: data.displayName,
+				userName: data.userName || data.displayName, // Fallback to displayName if userName is not set
 				gender: data.gender,
 				selectedUniversity: data.selectedUniversity || 'Not Specified'
 			};
 		});
 		callback(userInfo[0]);
 	});
-
 	return unsubscribe;
 };
-export const getUserInfo = async (userId: string): Promise<UserInfo | null> => {
-	try {
-		const lifterRef = doc(db, 'lifters', userId);
-		const lifterDoc = await getDoc(lifterRef);
 
-		if (lifterDoc.exists()) {
-			const data = lifterDoc.data() as LifterData;
-			return {
-				displayName: data.displayName,
-				gender: data.gender,
-				selectedUniversity: data.selectedUniversity || '' // Add a default value if it doesn't exist
-			};
+export const getUserLifts = (displayName: string, callback: (lifts: Lift[]) => void): (() => void) => {
+	const q = query(collection(db, 'lifters'), where('displayName', '==', displayName), limit(1));
+	const unsubscribe = onSnapshot(q, (querySnapshot) => {
+		if (!querySnapshot.empty) {
+			const docSnapshot = querySnapshot.docs[0];
+			const data = docSnapshot.data() as LifterData;
+			const lifts: Lift[] = Object.values(data.lifts).map((lift) => ({
+				...lift,
+				formattedDate: formatDate(lift.timestamp)
+			}));
+			callback(lifts);
 		} else {
-			return null;
+			callback([]);
 		}
-	} catch (error) {
-		console.error('Error fetching user information:', error);
-		throw error;
-	}
+	}, (error) => {
+		console.error('Error fetching user lifts:', error);
+		callback([]);
+	});
+	return unsubscribe;
 };
 // Function to get lifts for a specific user
-export const getUserLifts = (userId: string, callback: (lifts: Lift[]) => void): (() => void) => {
+export const getUserLiftsPersonal = (userId: string, callback: (lifts: Lift[]) => void): (() => void) => {
 	const lifterRef = doc(db, 'lifters', userId);
 	const unsubscribe = onSnapshot(
 		lifterRef,
@@ -234,3 +237,157 @@ function formatDate(timestamp: { toDate: () => Date }): string {
 	const date = timestamp.toDate();
 	return date.toLocaleDateString();
 }
+
+export const deleteLift = async (user: User, liftUID: string | undefined): Promise<void> => {
+	if (user && liftUID) {
+		try {
+			// Delete from 'lifts' collection
+			const q = query(
+				collection(db, 'lifts'),
+				where('userId', '==', user.uid),
+				where('liftUID', '==', liftUID)
+			);
+			const querySnapshot = await getDocs(q);
+
+			if (!querySnapshot.empty) {
+				const docToDelete = querySnapshot.docs[0];
+				await deleteDoc(docToDelete.ref);
+			}
+
+			// Delete from 'lifters' collection
+			const lifterDocRef = doc(db, 'lifters', user.uid);
+			const lifterDocSnap = await getDoc(lifterDocRef);
+
+			if (lifterDocSnap.exists()) {
+				const lifterData = lifterDocSnap.data() as LifterData;
+
+				if (lifterData.lifts && liftUID in lifterData.lifts) {
+					delete lifterData.lifts[liftUID];
+
+					await updateDoc(lifterDocRef, {
+						lifts: lifterData.lifts
+					});
+				}
+			}
+		} catch (error) {
+			console.error('Error deleting lift:', error);
+			console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+			throw error;
+		}
+	} else {
+		console.error('User not authenticated or liftUID is undefined');
+		throw new Error('User not authenticated or liftUID is undefined');
+	}
+};
+
+export const updateLift = async (
+	user: User,
+	liftUID: string | undefined,
+	updatedLift: Partial<Lift>
+): Promise<void> => {
+	if (user) {
+		try {
+			const total: number =
+				(updatedLift.squat ?? 0) + (updatedLift.bench ?? 0) + (updatedLift.deadlift ?? 0);
+			const dotsScore: number = Calculate_DOTS(
+				updatedLift.bodyWeight ?? 0,
+				total,
+				updatedLift.gender ?? 'Male'
+			);
+
+			if (!liftUID) {
+				// If liftUID is not provided, create a new document
+				const newLiftRef = doc(collection(db, 'lifts'));
+				liftUID = uuidv4(); // Generate a new UUID for liftUID
+				await setDoc(newLiftRef, {
+					userId: user.uid,
+					liftUID,
+					...updatedLift,
+					total,
+					dotsScore,
+					timestamp: serverTimestamp()
+				});
+			} else {
+				// If liftUID is provided, try to update existing document
+				const q = query(
+					collection(db, 'lifts'),
+					where('userId', '==', user.uid),
+					where('liftUID', '==', liftUID)
+				);
+				let querySnapshot = await getDocs(q);
+
+				// If no document found with liftUID, try searching with liftID for legacy support
+				if (querySnapshot.empty) {
+					const qLegacy = query(
+						collection(db, 'lifts'),
+						where('userId', '==', user.uid),
+						where('liftID', '==', liftUID)
+					);
+					querySnapshot = await getDocs(qLegacy);
+				}
+
+				if (querySnapshot.empty) {
+					// If still no matching document found, create a new one
+					const newLiftRef = doc(collection(db, 'lifts'));
+					await setDoc(newLiftRef, {
+						userId: user.uid,
+						displayName: user.displayName,
+						liftUID,
+						...updatedLift,
+						total,
+						dotsScore,
+						timestamp: serverTimestamp()
+					});
+				} else {
+					// Update existing document
+					const docToUpdate = querySnapshot.docs[0];
+
+					await updateDoc(docToUpdate.ref, {
+						...updatedLift,
+						liftUID, // Ensure we're using liftUID going forward
+						total,
+						dotsScore,
+						timestamp: serverTimestamp()
+					});
+				}
+			}
+
+			// Update the lift in the 'lifters' collection
+			const lifterDocRef = doc(db, 'lifters', user.uid);
+			const lifterDocSnap = await getDoc(lifterDocRef);
+
+			if (lifterDocSnap.exists()) {
+				const lifterData = lifterDocSnap.data() as LifterData;
+
+				// Update or add the lift in the lifter's document
+				lifterData.lifts = lifterData.lifts || {};
+				lifterData.lifts[liftUID] = {
+					...(updatedLift as Lift),
+					liftUID,
+					total,
+					dotsScore,
+					timestamp: serverTimestamp()
+				};
+
+				// Remove old liftID entry if it exists
+				if (lifterData.lifts[updatedLift.liftID as string]) {
+					delete lifterData.lifts[updatedLift.liftID as string];
+				}
+
+				await updateDoc(lifterDocRef, {
+					lifts: lifterData.lifts
+				});
+			} else {
+				console.error(`Lifter document not found for user: ${user.uid}`);
+				throw new Error('Lifter document not found');
+			}
+		} catch (error) {
+			console.error('Error updating lift:', error);
+			console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+			throw error;
+		}
+	} else {
+		console.error('User not authenticated');
+		throw new Error('User not authenticated');
+	}
+};
