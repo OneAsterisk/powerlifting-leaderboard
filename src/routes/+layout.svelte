@@ -3,6 +3,7 @@
 	import Navbar from '../components/Navbar.svelte';
 	import '../lib/styles/global.scss';
 	import Footer from '../components/Footer.svelte';
+	import SearchBar from '../components/SearchBar.svelte';
 </script>
 
 <Theme theme="dark">
@@ -10,6 +11,7 @@
 		<Navbar />
 	</header>
 	<main>
+		<div style="display: flex; flex-direction: column; align-items: flex-end; "></div>
 		<slot />
 	</main>
 	<Footer />

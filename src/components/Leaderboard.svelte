@@ -4,42 +4,59 @@
 	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 	import type { Lift } from '../types';
-	import { stringify } from 'uuid';
 	import { Tooltip } from '@sveltestrap/sveltestrap';
+
+	// Exported prop
+	export let university: string | undefined;
+
+	// Variables
+	let allLifts: Lift[] = [];
 	let topLifts: Lift[] = [];
 	let unsubscribe: () => void;
 	let sort: keyof Lift = 'rank';
-	let userName: string = 'undefined';
 	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
-	export let university: string | undefined;
+
+	// Cache for usernames
+	let userNameCache: { [key: string]: string } = {};
+
+	// Fetch all lifts on component mount
 	onMount(() => {
-    unsubscribe = getAllLifts((updatedLifts) => {
-        topLifts = updatedLifts;
-        if(university != undefined) {
-            topLifts = topLifts.filter((lift) => lift.selectedUniversity.split(' -')[0] === university);
-			// Update ranks after filtering
-            topLifts = topLifts.map((lift, index) => ({
-                ...lift,
-                rank: index + 1
-            }));
-		}
-        handleSort();
-    });
-});
-	
+		unsubscribe = getAllLifts((updatedLifts) => {
+			allLifts = updatedLifts;
+		});
+	});
+
+	// Clean up subscription on component destroy
 	onDestroy(() => {
 		if (unsubscribe) {
 			unsubscribe();
 		}
 	});
-	let userNameCache: { [key: string]: string } = {};
 
-async function loadUserName(displayName: string) {
-    if (!userNameCache[displayName]) {
-        userNameCache[displayName] = await getUserName(displayName);
-    }
-    return userNameCache[displayName];
-}
+	// Reactive statement to filter and sort lifts whenever `university` or `allLifts` changes
+	$: if (allLifts.length > 0) {
+		if (university) {
+			topLifts = allLifts.filter((lift) => lift.selectedUniversity.split(' -')[0] === university);
+		} else {
+			topLifts = allLifts;
+		}
+		// Update ranks after filtering
+		topLifts = topLifts.map((lift, index) => ({
+			...lift,
+			rank: index + 1
+		}));
+		handleSort();
+	}
+
+	// Function to load usernames
+	async function loadUserName(displayName: string) {
+		if (!userNameCache[displayName]) {
+			userNameCache[displayName] = await getUserName(displayName);
+		}
+		return userNameCache[displayName];
+	}
+
+	// Sorting function
 	function handleSort() {
 		topLifts.sort((a, b) => {
 			const [aVal, bVal] = [a[sort], b[sort]][
@@ -50,12 +67,14 @@ async function loadUserName(displayName: string) {
 			}
 			return Number(aVal) - Number(bVal);
 		});
-		topLifts = topLifts;
+		// Update ranks after sorting
 		topLifts = topLifts.map((lift, index) => ({
-                ...lift,
-                rank: index + 1
-            }));
+			...lift,
+			rank: index + 1
+		}));
 	}
+
+	// Columns for the data table
 	const columns: { key: keyof Lift; label: string; numeric?: boolean; sortable?: boolean }[] = [
 		{ key: 'rank', label: 'Rank' },
 		{ key: 'displayName', label: 'Name' },
@@ -68,6 +87,7 @@ async function loadUserName(displayName: string) {
 	];
 </script>
 
+<!-- Your component's markup -->
 <div class="leaderboard-container">
 	<h1>{university ? `${university} Leaderboard` : 'Global Leaderboard'}</h1>
 	<DataTable
@@ -86,7 +106,11 @@ async function loadUserName(displayName: string) {
 						columnId={column.key}
 						sortable={column.sortable ?? false}
 						style="width: 5%"
-						id={column.sortable ? "sorting-cell"+i : column.key === 'selectedUniversity' ? 'university-cell' : ''}
+						id={column.sortable
+							? 'sorting-cell' + i
+							: column.key === 'selectedUniversity'
+								? 'university-cell'
+								: ''}
 					>
 						{#if column.numeric}
 							<IconButton class="material-icons">arrow_upward</IconButton>
@@ -96,8 +120,12 @@ async function loadUserName(displayName: string) {
 							<IconButton class="material-icons">arrow_upward</IconButton>
 						{/if}
 					</Cell>
-					<Tooltip placement="top" target="university-cell" isOpen={false}>Click on a university to view its leaderboard</Tooltip>
-					<Tooltip placement="top" target={"sorting-cell"+i} isOpen={false}>Sorting adjusts the ranking</Tooltip>
+					<Tooltip placement="top" target="university-cell" isOpen={false}
+						>Click on a university to view its leaderboard</Tooltip
+					>
+					<Tooltip placement="top" target={'sorting-cell' + i} isOpen={false}
+						>Sorting adjusts the ranking</Tooltip
+					>
 				{/each}
 			</Row>
 		</Head>
@@ -105,19 +133,24 @@ async function loadUserName(displayName: string) {
 			{#each topLifts as lift (lift.rank)}
 				<Row>
 					{#each columns as column}
-						<Cell numeric={column.numeric} id={column.key === 'displayName' ? lift[column.key] : ''}>
+						<Cell
+							numeric={column.numeric}
+							id={column.key === 'displayName' ? lift[column.key] : ''}
+						>
 							{#if column.key === 'displayName'}
 								{#await loadUserName(lift[column.key])}
 									<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a>
 								{:then userName}
-								{#if userName !== ''}
-									<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a> ({userName})
-								{:else}
-								<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a>
+									{#if userName !== ''}
+										<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a> ({userName})
+									{:else}
+										<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a>
 									{/if}
 								{/await}
 							{:else if column.key === 'selectedUniversity'}
-								<a href={`/uni/${lift[column.key].split(' -')[0]}`}>{lift[column.key].split(' -')[0]}</a>
+								<a href={`/uni/${lift[column.key].split(' -')[0]}`}
+									>{lift[column.key].split(' -')[0]}</a
+								>
 							{:else}
 								{lift[column.key]}
 							{/if}
@@ -150,7 +183,7 @@ async function loadUserName(displayName: string) {
 		border: 1px solid #5b5656;
 		border-radius: 4px;
 		overflow: hidden;
-		font-size: .735rem;
+		font-size: 0.735rem;
 	}
 
 	:global(.mdc-data-table__header-cell) {

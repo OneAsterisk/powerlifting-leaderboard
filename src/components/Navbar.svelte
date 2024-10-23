@@ -1,6 +1,7 @@
 <script>
 	import { Navbar, NavbarBrand, Nav, NavItem, NavLink, Dropdown } from '@sveltestrap/sveltestrap';
 	import { user } from '../stores/userStore';
+	import SearchBar from './SearchBar.svelte';
 </script>
 
 <Navbar color="dark" dark expand="md">
@@ -8,6 +9,9 @@
 		><img class="logo" alt="Collegiate Strength Logo" src="/Logo.svg" />
 	</NavbarBrand>
 	<Nav navbar>
+		<NavItem style="padding-top: 5px;">
+			<SearchBar />
+		</NavItem>
 		<NavItem>
 			<NavLink href="/">Home</NavLink>
 		</NavItem>

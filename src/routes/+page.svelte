@@ -3,6 +3,7 @@
 	import Leaderboard from '../components/Leaderboard.svelte';
 	import { user } from '../stores/userStore';
 	import { Theme } from '@sveltestrap/sveltestrap';
+	import SearchBar from '../components/SearchBar.svelte';
 
 	const title = 'Collegiate Strength - Powerlifting Leaderboard';
 </script>
@@ -11,6 +12,5 @@
 	<title>{title}</title>
 </svelte:head>
 <Theme theme="dark">
-
-	<Leaderboard university={undefined}/>
+	<Leaderboard university={undefined} />
 </Theme>

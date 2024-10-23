@@ -163,9 +163,10 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 export const getUserName = async (displayName: string): Promise<string> => {
 	const q = query(collection(db, 'lifters'), where('displayName', '==', displayName), limit(1));
 	const querySnapshot = await getDocs(q);
-	const userName = querySnapshot.docs[0]?.data().userName ||  '';
+	const userName = querySnapshot.docs[0]?.data().userName || '';
 	return userName;
-};export const getUserInfo = (
+};
+export const getUserInfo = (
 	userId: string,
 	callback: (userInfo: UserInfo | null) => void
 ): (() => void) => {
@@ -185,28 +186,38 @@ export const getUserName = async (displayName: string): Promise<string> => {
 	return unsubscribe;
 };
 
-export const getUserLifts = (displayName: string, callback: (lifts: Lift[]) => void): (() => void) => {
+export const getUserLifts = (
+	displayName: string,
+	callback: (lifts: Lift[]) => void
+): (() => void) => {
 	const q = query(collection(db, 'lifters'), where('displayName', '==', displayName), limit(1));
-	const unsubscribe = onSnapshot(q, (querySnapshot) => {
-		if (!querySnapshot.empty) {
-			const docSnapshot = querySnapshot.docs[0];
-			const data = docSnapshot.data() as LifterData;
-			const lifts: Lift[] = Object.values(data.lifts).map((lift) => ({
-				...lift,
-				formattedDate: formatDate(lift.timestamp)
-			}));
-			callback(lifts);
-		} else {
+	const unsubscribe = onSnapshot(
+		q,
+		(querySnapshot) => {
+			if (!querySnapshot.empty) {
+				const docSnapshot = querySnapshot.docs[0];
+				const data = docSnapshot.data() as LifterData;
+				const lifts: Lift[] = Object.values(data.lifts).map((lift) => ({
+					...lift,
+					formattedDate: formatDate(lift.timestamp)
+				}));
+				callback(lifts);
+			} else {
+				callback([]);
+			}
+		},
+		(error) => {
+			console.error('Error fetching user lifts:', error);
 			callback([]);
 		}
-	}, (error) => {
-		console.error('Error fetching user lifts:', error);
-		callback([]);
-	});
+	);
 	return unsubscribe;
 };
 // Function to get lifts for a specific user
-export const getUserLiftsPersonal = (userId: string, callback: (lifts: Lift[]) => void): (() => void) => {
+export const getUserLiftsPersonal = (
+	userId: string,
+	callback: (lifts: Lift[]) => void
+): (() => void) => {
 	const lifterRef = doc(db, 'lifters', userId);
 	const unsubscribe = onSnapshot(
 		lifterRef,
@@ -390,4 +401,19 @@ export const updateLift = async (
 		console.error('User not authenticated');
 		throw new Error('User not authenticated');
 	}
+};
+
+export const searchPeople = async (searchQuery: string): Promise<any[]> => {
+	const q = query(
+		collection(db, 'lifters'),
+		where('displayName', '>=', searchQuery),
+		where('displayName', '<=', searchQuery + '\uf8ff'),
+		limit(10)
+	);
+
+	const querySnapshot = await getDocs(q);
+	return querySnapshot.docs.map((doc) => ({
+		id: doc.id,
+		name: doc.data().displayName
+	}));
 };
