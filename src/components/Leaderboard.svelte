@@ -98,6 +98,7 @@
 		{ key: 'selectedUniversity', label: 'University' },
 		{ key: 'dotsScore', label: 'Dots', numeric: true, sortable: true },
 		{ key: 'bodyWeight', label: 'Body Weight', numeric: true, sortable: true },
+		{ key: 'age', label: 'Age', numeric: true, sortable: true },
 		{ key: 'total', label: 'Total', numeric: true, sortable: true },
 		{ key: 'squat', label: 'Squat', numeric: true, sortable: true },
 		{ key: 'bench', label: 'Bench', numeric: true, sortable: true },
