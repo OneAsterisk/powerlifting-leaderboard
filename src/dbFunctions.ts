@@ -385,7 +385,6 @@ export const deleteLift = async (user: User, liftUID: string | undefined): Promi
 		throw new Error('User not authenticated or liftUID is undefined');
 	}
 };
-
 export const updateLift = async (
 	user: User,
 	liftUID: string | undefined,
@@ -393,12 +392,28 @@ export const updateLift = async (
 ): Promise<void> => {
 	if (user) {
 		try {
+			// First, get the lifter's document to retrieve age
+			const lifterDocRef = doc(db, 'lifters', user.uid);
+			const lifterDocSnap = await getDoc(lifterDocRef);
+
+			if (!lifterDocSnap.exists()) {
+				console.error(`Lifter document not found for user: ${user.uid}`);
+				throw new Error('Lifter document not found');
+			}
+
+			const lifterData = lifterDocSnap.data() as LifterData;
+			const age = lifterData.age;
+
+			if (typeof age !== 'number') {
+				console.error('Age not found or invalid in lifter document');
+				throw new Error('Invalid age data');
+			}
+
 			const total: number =
 				(updatedLift.squat ?? 0) + (updatedLift.bench ?? 0) + (updatedLift.deadlift ?? 0);
-			const dotsScore: number = Calculate_DOTS(
-				updatedLift.bodyWeight ?? 0,
-				total,
-				updatedLift.gender ?? 'Male'
+			const dotsScore: number = ageCoefCalc(
+				age,
+				Calculate_DOTS(updatedLift.bodyWeight ?? 0, total, updatedLift.gender ?? 'Male')
 			);
 
 			if (!liftUID) {
@@ -459,34 +474,23 @@ export const updateLift = async (
 			}
 
 			// Update the lift in the 'lifters' collection
-			const lifterDocRef = doc(db, 'lifters', user.uid);
-			const lifterDocSnap = await getDoc(lifterDocRef);
+			lifterData.lifts = lifterData.lifts || {};
+			lifterData.lifts[liftUID] = {
+				...(updatedLift as Lift),
+				liftUID,
+				total,
+				dotsScore,
+				timestamp: serverTimestamp()
+			};
 
-			if (lifterDocSnap.exists()) {
-				const lifterData = lifterDocSnap.data() as LifterData;
-
-				// Update or add the lift in the lifter's document
-				lifterData.lifts = lifterData.lifts || {};
-				lifterData.lifts[liftUID] = {
-					...(updatedLift as Lift),
-					liftUID,
-					total,
-					dotsScore,
-					timestamp: serverTimestamp()
-				};
-
-				// Remove old liftID entry if it exists
-				if (lifterData.lifts[updatedLift.liftID as string]) {
-					delete lifterData.lifts[updatedLift.liftID as string];
-				}
-
-				await updateDoc(lifterDocRef, {
-					lifts: lifterData.lifts
-				});
-			} else {
-				console.error(`Lifter document not found for user: ${user.uid}`);
-				throw new Error('Lifter document not found');
+			// Remove old liftID entry if it exists
+			if (lifterData.lifts[updatedLift.liftID as string]) {
+				delete lifterData.lifts[updatedLift.liftID as string];
 			}
+
+			await updateDoc(lifterDocRef, {
+				lifts: lifterData.lifts
+			});
 		} catch (error) {
 			console.error('Error updating lift:', error);
 			console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
@@ -497,7 +501,6 @@ export const updateLift = async (
 		throw new Error('User not authenticated');
 	}
 };
-
 export const searchPeople = async (searchQuery: string): Promise<any[]> => {
 	const q = query(
 		collection(db, 'lifters'),
