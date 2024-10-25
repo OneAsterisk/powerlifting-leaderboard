@@ -17,6 +17,7 @@
 	import { weightUnit } from '../stores/weightUnitStore';
 	import UniversitySelector from './UniversitySelector.svelte';
 	import { convertWeight } from '../helpers';
+	import { invalidateAll } from '$app/navigation';
 	export let lift: Lift;
 	export let open: boolean;
 	let squat = lift.squat;
@@ -60,10 +61,10 @@
         if ($user) {
             try {
                 // Convert all weights back to lbs before saving
-                const lbsSquat = $weightUnit === 'kg' ? convertToLbs(displaySquat, 'kg') : displaySquat;
-                const lbsBench = $weightUnit === 'kg' ? convertToLbs(displayBench, 'kg') : displayBench;
-                const lbsDeadlift = $weightUnit === 'kg' ? convertToLbs(displayDeadlift, 'kg') : displayDeadlift;
-                const lbsBodyWeight = $weightUnit === 'kg' ? convertToLbs(displayBodyWeight, 'kg') : displayBodyWeight;
+                const lbsSquat = Number($weightUnit === 'kg' ? convertToLbs(displaySquat, 'kg') : displaySquat);
+            	const lbsBench = Number($weightUnit === 'kg' ? convertToLbs(displayBench, 'kg') : displayBench);
+            	const lbsDeadlift = Number($weightUnit === 'kg' ? convertToLbs(displayDeadlift, 'kg') : displayDeadlift);
+            	const lbsBodyWeight = Number($weightUnit === 'kg' ? convertToLbs(displayBodyWeight, 'kg') : displayBodyWeight);
 
                 const updatedLift = {
                     squat: lbsSquat,
@@ -84,31 +85,32 @@
             }
         }
     };
+ 
 </script>
 
 <div id="editLiftForm">
 	<Modal isOpen={open} class="editForm">
 		<ModalHeader class="editForm">Edit Lift ({$weightUnit})</ModalHeader>
 		<ModalBody class="editForm">
-			<Form on:submit={handleSubmit}>
-			<FormGroup>
-                <Label for="squat">Squat ({$weightUnit})</Label>
-                <Input type="number" id="squat" bind:value={displaySquat} required />
-            </FormGroup>
-            <FormGroup>
-                <Label for="bench">Bench ({$weightUnit})</Label>
-                <Input type="number" id="bench" bind:value={displayBench} required />
-            </FormGroup>
-            <FormGroup>
-                <Label for="deadlift">Deadlift ({$weightUnit})</Label>
-                <Input type="number" id="deadlift" bind:value={displayDeadlift} required />
-            </FormGroup>
-            <FormGroup>
-                <Label for="bodyWeight">Body Weight ({$weightUnit})</Label>
-                <Input type="number" id="bodyWeight" bind:value={displayBodyWeight} required />
-            </FormGroup>
+            <Form on:submit={handleSubmit}>
 				<FormGroup>
-					<Label for="age">Age</Label>
+					<Label for="squat">Squat ({$weightUnit})</Label>
+					<Input type="text" id="squat" bind:value={displaySquat} pattern="^\d+(\.\d)?$" required />
+				</FormGroup>
+				<FormGroup>
+					<Label for="bench">Bench ({$weightUnit})</Label>
+					<Input type="text" id="bench" bind:value={displayBench} pattern="^\d+(\.\d)?$" required />
+				</FormGroup>
+				<FormGroup>
+					<Label for="deadlift">Deadlift ({$weightUnit})</Label>
+					<Input type="text" id="deadlift" bind:value={displayDeadlift} pattern="^\d+(\.\d)?$" required />
+				</FormGroup>
+				<FormGroup>
+					<Label for="bodyWeight">Body Weight ({$weightUnit})</Label>
+					<Input type="text" id="bodyWeight" bind:value={displayBodyWeight} pattern="^\d+(\.\d)?$" required />
+				</FormGroup>
+                <FormGroup>
+					<Label for="age">Age</Label>					
 					<Input type="number" id="age" bind:value={age} required />
 				</FormGroup>
 				<FormGroup class="radio-container">

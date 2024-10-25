@@ -1,202 +1,225 @@
 <script lang="ts">
-	import { user } from '../../stores/userStore';
-	import {
-		Form,
-		FormGroup,
-		Label,
-		Input,
-		Button,
-		InputGroup,
-		InputGroupText,
-		Row,
-		Col
-	} from '@sveltestrap/sveltestrap';
-	import UniversitySelector from '../../components/UniversitySelector.svelte';
-	import { onMount, onDestroy } from 'svelte';
-	import { userInfoStore } from '../../stores/userInfoStore';
-	import { v4 as uuidv4 } from 'uuid';
-	import { getUserInfo, submitLift } from '../../dbFunctions';
-	import type { UserInfo } from '../../types';
+    import { user } from '../../stores/userStore';
+    import {
+        Form,
+        FormGroup,
+        Label,
+        Input,
+        Button,
+        InputGroup,
+        InputGroupText,
+        Row,
+        Col
+    } from '@sveltestrap/sveltestrap';
+    import UniversitySelector from '../../components/UniversitySelector.svelte';
+    import { onMount, onDestroy } from 'svelte';
+    import { userInfoStore } from '../../stores/userInfoStore';
+    import { v4 as uuidv4 } from 'uuid';
+    import { getUserInfo, submitLift } from '../../dbFunctions';
+    import type { UserInfo } from '../../types';
 
-	let unsubscribe: (() => void) | undefined;
+    let unsubscribe: (() => void) | undefined;
 
-	let gender: string = '';
-	let selectedUniversity: string = '';
-	let squat: number;
-	let bench: number;
-	let deadlift: number;
-	let bodyWeight: number;
-	let age: number;
-	const title = 'Collegiate Strength - Submit Lift';
-	let hasInitialized = false;
-	let newUUID = '';
-	let liftType: string;
+    let gender: string = '';
+    let selectedUniversity: string = '';
+    let squat: string = '';  // Adjusted to string to handle input parsing
+    let bench: string = '';
+    let deadlift: string = '';
+    let bodyWeight: string = '';
+    let age: number;
+    const title = 'Collegiate Strength - Submit Lift';
+    let hasInitialized = false;
+    let newUUID = '';
+    let liftType: string;
 
-	onMount(() => {
-		unsubscribe = user.subscribe((currentUser) => {
-			if (currentUser) {
-				userInfoStore.fetchUserInfo(currentUser.uid);
-			} else {
-				userInfoStore.clearUserInfo();
-			}
-		});
-	});
+    onMount(() => {
+        unsubscribe = user.subscribe((currentUser) => {
+            if (currentUser) {
+                userInfoStore.fetchUserInfo(currentUser.uid);
+            } else {
+                userInfoStore.clearUserInfo();
+            }
+        });
+    });
 
-	onDestroy(() => {
-		if (unsubscribe) {
-			unsubscribe();
-		}
-		userInfoStore.clearUserInfo();
-	});
+    onDestroy(() => {
+        if (unsubscribe) {
+            unsubscribe();
+        }
+        userInfoStore.clearUserInfo();
+    });
 
-	$: if ($userInfoStore && !hasInitialized) {
-		gender = $userInfoStore.gender || '';
-		hasInitialized = true;
-	}
+    $: if ($userInfoStore && !hasInitialized) {
+        gender = $userInfoStore.gender || '';
+        hasInitialized = true;
+    }
 
-	const handleSubmit = async (event: Event) => {
-		newUUID = uuidv4();
-		event.preventDefault();
-		if ($user) {
-			try {
-				await submitLift(
-					$user,
-					squat,
-					bench,
-					deadlift,
-					bodyWeight,
-					age,
-					gender,
-					selectedUniversity,
-					newUUID,
-					liftType
-				);
-				alert('Lift submitted successfully!');
-			} catch (error) {
-				if (error instanceof Error && error.message === 'Lift exceeds maximum allowed weight.') {
-					alert(
-						'Your lifts seems to exceed the average and need to be verified! Please contact support@collegiatestrength.com for support!'
-					);
-				} else {
-					console.error('Error submitting lift:', error);
-					alert('Error submitting lift. Please try again.');
-				}
-			}
-		} else {
-			alert('Please sign in to submit your lift.');
-		}
-	};
+    const handleSubmit = async (event: Event) => {
+        newUUID = uuidv4();
+        event.preventDefault();
+
+        const parsedSquat = parseFloat(squat) || 0;
+        const parsedBench = parseFloat(bench) || 0;
+        const parsedDeadlift = parseFloat(deadlift) || 0;
+        const parsedBodyWeight = parseFloat(bodyWeight) || 0;
+
+        const total = parsedSquat + parsedBench + parsedDeadlift;
+
+        if ($user) {
+            try {
+                await submitLift(
+                    $user,
+                    parsedSquat,
+                    parsedBench,
+                    parsedDeadlift,
+                    parsedBodyWeight,
+                    age,
+                    gender,
+                    selectedUniversity,
+                    newUUID,
+                    liftType
+                );
+                alert(`Lift submitted successfully!`);
+            } catch (error) {
+                if (error instanceof Error && error.message === 'Lift exceeds maximum allowed weight.') {
+                    alert(
+                        'Your lifts seem to exceed the average and need to be verified! Please contact support@collegiatestrength.com for assistance.'
+                    );
+                } else {
+                    console.error('Error submitting lift:', error);
+                    alert('Error submitting lift. Please try again.');
+                }
+            }
+        } else {
+            alert('Please sign in to submit your lift.');
+        }
+    };
 </script>
 
 <svelte:head>
-	<title>{title}</title>
+    <title>{title}</title>
 </svelte:head>
-{#if $user}
-	<header class="w-75 mx-auto">
-		<h1>Submit Your Lifts</h1>
-		<h6>Select your weight unit up top! That is how everything will be entered</h6>
-	</header>
 
-	<Form on:submit={handleSubmit} class="w-75 mx-auto">
-		<Row class="mb-3">
-			<Col sm={12} md={4}>
-				<FormGroup>
-					<InputGroup>
-						<InputGroupText class="custom-label">Squat</InputGroupText>
-						<Input type="number" id="squat" bind:value={squat} min="0" placeholder="0" required />
-					</InputGroup>
-				</FormGroup>
-			</Col>
-			<Col sm={12} md={4}>
-				<FormGroup>
-					<InputGroup>
-						<InputGroupText class="custom-label">Bench</InputGroupText>
-						<Input type="number" id="bench" bind:value={bench} min="0" placeholder="0" required />
-					</InputGroup>
-				</FormGroup>
-			</Col>
-			<Col sm={12} md={4}>
-				<FormGroup>
-					<InputGroup>
-						<InputGroupText class="custom-label">Deadlift</InputGroupText>
-						<Input
-							type="number"
-							id="deadlift"
-							bind:value={deadlift}
-							min="0"
-							placeholder="0"
-							required
-						/>
-					</InputGroup>
-				</FormGroup>
-			</Col>
-		</Row>
-		<Row class="mb-3">
-			<Col sm={12} md={4}>
-				<FormGroup>
-					<InputGroup>
-						<InputGroupText class="custom-label">Gender</InputGroupText>
-						<Input type="select" id="gender" bind:value={gender} placeholder="Select Gender">
-							<option value="Male">Male</option>
-							<option value="Female">Female</option>
-						</Input>
-					</InputGroup>
-				</FormGroup>
-			</Col>
-			<Col sm={12} md={4}>
-				<FormGroup>
-					<InputGroup>
-						<InputGroupText class="custom-label">Age</InputGroupText>
-						<Input
-							type="number"
-							id="age"
-							bind:value={age}
-							min="0"
-							max="100"
-							placeholder="0"
-							required
-						/>
-					</InputGroup>
-				</FormGroup>
-			</Col>
-			<Col sm={12} md={4}>
-				<FormGroup>
-					<InputGroup>
-						<InputGroupText class="custom-label">Body Weight</InputGroupText>
-						<Input
-							type="number"
-							id="weight"
-							bind:value={bodyWeight}
-							min="0"
-							placeholder="0"
-							required
-						/>
-					</InputGroup>
-				</FormGroup>
-			</Col>
-		</Row>
-		<Row class="mb-3">
-			<Col sm={12} md={6}>
-				<FormGroup>
-					<UniversitySelector bind:selectedUniversity />
-				</FormGroup>
-			</Col>
-			<Col sm={12} md={6}>
-				<FormGroup class="radio-container">
-					<InputGroup>
-						{#each ['Comp Lift', 'Gym Lift'] as value}
-							<div style={'margin: 0 30px;'}>
-								<Input type="radio" theme="light" bind:group={liftType} {value} label={value} />
-							</div>
-						{/each}
-					</InputGroup>
-				</FormGroup>
-			</Col>
-		</Row>
-		<Button type="submit" color="primary">Submit</Button>
-	</Form>
+{#if $user}
+    <header class="w-75 mx-auto">
+        <h1>Submit Your Lifts</h1>
+        <h6>Select your weight unit up top! That is how everything will be entered</h6>
+    </header>
+
+    <Form on:submit={handleSubmit} class="w-75 mx-auto">
+        <Row class="mb-3">
+            <Col sm={12} md={4}>
+                <FormGroup>
+                    <InputGroup>
+                        <InputGroupText class="custom-label">Squat</InputGroupText>
+                        <Input
+                            type="text"
+                            id="squat"
+                            bind:value={squat}
+                            pattern="^\d+(\.\d)?$"
+                            placeholder="0"
+                            required
+                        />
+                    </InputGroup>
+                </FormGroup>
+            </Col>
+            <Col sm={12} md={4}>
+                <FormGroup>
+                    <InputGroup>
+                        <InputGroupText class="custom-label">Bench</InputGroupText>
+                        <Input
+                            type="text"
+                            id="bench"
+                            bind:value={bench}
+                            pattern="^\d+(\.\d)?$"
+                            placeholder="0"
+                            required
+                        />
+                    </InputGroup>
+                </FormGroup>
+            </Col>
+            <Col sm={12} md={4}>
+                <FormGroup>
+                    <InputGroup>
+                        <InputGroupText class="custom-label">Deadlift</InputGroupText>
+                        <Input
+                            type="text"
+                            id="deadlift"
+                            bind:value={deadlift}
+                            pattern="^\d+(\.\d)?$"
+                            placeholder="0"
+                            required
+                        />
+                    </InputGroup>
+                </FormGroup>
+            </Col>
+        </Row>
+        <Row class="mb-3">
+            <Col sm={12} md={4}>
+                <FormGroup>
+                    <InputGroup>
+                        <InputGroupText class="custom-label">Gender</InputGroupText>
+                        <Input type="select" id="gender" bind:value={gender} placeholder="Select Gender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </Input>
+                    </InputGroup>
+                </FormGroup>
+            </Col>
+            <Col sm={12} md={4}>
+                <FormGroup>
+                    <InputGroup>
+                        <InputGroupText class="custom-label">Age</InputGroupText>
+                        <Input
+                            type="number"
+                            id="age"
+                            bind:value={age}
+                            min="0"
+                            max="100"
+                            placeholder="0"
+                            required
+                        />
+                    </InputGroup>
+                </FormGroup>
+            </Col>
+            <Col sm={12} md={4}>
+                <FormGroup>
+                    <InputGroup>
+                        <InputGroupText class="custom-label">Body Weight</InputGroupText>
+                        <Input
+                            type="text"
+                            id="weight"
+                            bind:value={bodyWeight}
+                            pattern="^\d+(\.\d)?$"
+                            placeholder="0"
+                            required
+                        />
+                    </InputGroup>
+                </FormGroup>
+            </Col>
+        </Row>
+        <Row class="mb-3">
+            <Col sm={12} md={6}>
+                <FormGroup>
+                    <UniversitySelector bind:selectedUniversity />
+                </FormGroup>
+            </Col>
+            <Col sm={12} md={6}>
+                <FormGroup class="radio-container">
+                    <InputGroup>
+                        {#each ['Comp Lift', 'Gym Lift'] as value}
+                            <div style="margin: 0 30px;">
+                                <Input type="radio" theme="light" bind:group={liftType} {value} label={value} />
+                            </div>
+                        {/each}
+                    </InputGroup>
+                </FormGroup>
+            </Col>
+        </Row>
+        <Button type="submit" color="primary">Submit</Button>
+    </Form>
 {:else}
-	<h2>Please sign in to be able to submit a lift</h2>
+    <h2>Please sign in to be able to submit a lift</h2>
 {/if}
 
 <style>
