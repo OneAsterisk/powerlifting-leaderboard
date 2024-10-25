@@ -5,7 +5,7 @@
 	import type { Lift } from '../../../types';
 	import { onDestroy, onMount } from 'svelte';
 	import { getUserLifts } from '../../../dbFunctions';
-	import { user } from '../../../stores/userStore';
+	import { weightUnit } from '../../../stores/weightUnitStore';
 
 	let displayName: string;
 	$: displayName = $page.params.displayName;
@@ -24,14 +24,23 @@
 	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
 	let unsubscribeLifts: (() => void) | undefined;
 
+	const convertWeight = (weight: number, unit: 'lbs' | 'kg'): number => {
+		if (unit === 'kg') {
+			return Math.round((weight / 2.205) * 100) / 100;
+		}
+		return weight;
+	};
+
 	onMount(() => {
 		unsubscribeLifts = getUserLifts(displayName, (lifts) => {
 			userLifts = lifts;
 		});
 	});
+
 	onDestroy(() => {
 		unsubscribeLifts && unsubscribeLifts();
 	});
+
 	function handleSort() {
 		userLifts.sort((a, b) => {
 			const [aVal, bVal] = [a[sort], b[sort]][
@@ -44,6 +53,7 @@
 		});
 		userLifts = userLifts;
 	}
+
 	$: if (displayName) {
 		if (unsubscribeLifts) {
 			unsubscribeLifts();
@@ -87,7 +97,19 @@
 			{#each userLifts as lift}
 				<Row>
 					{#each columns as column}
-						<Cell numeric={column.numeric}>{lift[column.key]}</Cell>
+						<Cell numeric={column.numeric}>
+							{#if column.key === 'squat' || column.key === 'bench' || column.key === 'deadlift' || column.key === 'total'}
+								{!lift[column.key]
+									? 'N/A'
+									: convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
+							{:else if column.key === 'selectedUniversity'}
+								<a href={`/uni/${lift[column.key].split(' -')[0]}`}
+									>{lift[column.key].split(' -')[0]}</a
+								>
+							{:else}
+								{lift[column.key]}
+							{/if}
+						</Cell>
 					{/each}
 				</Row>
 			{/each}
@@ -129,6 +151,10 @@
 
 	:global(.mdc-data-table__cell-numeric) {
 		width: 5%;
+	}
+
+	a {
+		color: aliceblue;
 	}
 
 	@media (max-width: 850px) {

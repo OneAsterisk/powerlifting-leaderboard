@@ -28,6 +28,7 @@ interface LifterData {
 	displayName: string;
 	gender: string;
 	selectedUniversity: string;
+	age: number;
 	lifts: { [key: string]: Lift };
 }
 
@@ -343,7 +344,6 @@ function formatDate(timestamp: { toDate: () => Date }): string {
 	const date = timestamp.toDate();
 	return date.toLocaleDateString();
 }
-
 export const deleteLift = async (user: User, liftUID: string | undefined): Promise<void> => {
 	if (user && liftUID) {
 		try {
@@ -353,7 +353,16 @@ export const deleteLift = async (user: User, liftUID: string | undefined): Promi
 				where('userId', '==', user.uid),
 				where('liftUID', '==', liftUID)
 			);
-			const querySnapshot = await getDocs(q);
+			let querySnapshot = await getDocs(q);
+
+			if (querySnapshot.empty) {
+				const qLegacy = query(
+					collection(db, 'lifts'),
+					where('userId', '==', user.uid),
+					where('liftID', '==', liftUID)
+				);
+				querySnapshot = await getDocs(qLegacy);
+			}
 
 			if (!querySnapshot.empty) {
 				const docToDelete = querySnapshot.docs[0];
@@ -367,12 +376,18 @@ export const deleteLift = async (user: User, liftUID: string | undefined): Promi
 			if (lifterDocSnap.exists()) {
 				const lifterData = lifterDocSnap.data() as LifterData;
 
-				if (lifterData.lifts && liftUID in lifterData.lifts) {
-					delete lifterData.lifts[liftUID];
+				if (lifterData.lifts) {
+					// Find the key of the lift to delete by matching liftUID
+					const liftKey = Object.entries(lifterData.lifts).find(
+						([_, lift]) => lift.liftUID === liftUID
+					)?.[0];
 
-					await updateDoc(lifterDocRef, {
-						lifts: lifterData.lifts
-					});
+					if (liftKey) {
+						delete lifterData.lifts[liftKey];
+						await updateDoc(lifterDocRef, {
+							lifts: lifterData.lifts
+						});
+					}
 				}
 			}
 		} catch (error) {
@@ -392,27 +407,11 @@ export const updateLift = async (
 ): Promise<void> => {
 	if (user) {
 		try {
-			// First, get the lifter's document to retrieve age
-			const lifterDocRef = doc(db, 'lifters', user.uid);
-			const lifterDocSnap = await getDoc(lifterDocRef);
-
-			if (!lifterDocSnap.exists()) {
-				console.error(`Lifter document not found for user: ${user.uid}`);
-				throw new Error('Lifter document not found');
-			}
-
-			const lifterData = lifterDocSnap.data() as LifterData;
-			const age = lifterData.age;
-
-			if (typeof age !== 'number') {
-				console.error('Age not found or invalid in lifter document');
-				throw new Error('Invalid age data');
-			}
-
+			// Calculate total and dots score
 			const total: number =
 				(updatedLift.squat ?? 0) + (updatedLift.bench ?? 0) + (updatedLift.deadlift ?? 0);
 			const dotsScore: number = ageCoefCalc(
-				age,
+				updatedLift.age ?? 23,
 				Calculate_DOTS(updatedLift.bodyWeight ?? 0, total, updatedLift.gender ?? 'Male')
 			);
 
@@ -474,18 +473,45 @@ export const updateLift = async (
 			}
 
 			// Update the lift in the 'lifters' collection
-			lifterData.lifts = lifterData.lifts || {};
-			lifterData.lifts[liftUID] = {
-				...(updatedLift as Lift),
-				liftUID,
-				total,
-				dotsScore,
-				timestamp: serverTimestamp()
-			};
+			const lifterDocRef = doc(db, 'lifters', user.uid);
+			const lifterDocSnap = await getDoc(lifterDocRef);
 
-			// Remove old liftID entry if it exists
-			if (lifterData.lifts[updatedLift.liftID as string]) {
-				delete lifterData.lifts[updatedLift.liftID as string];
+			if (!lifterDocSnap.exists()) {
+				console.error(`Lifter document not found for user: ${user.uid}`);
+				throw new Error('Lifter document not found');
+			}
+
+			const lifterData = lifterDocSnap.data() as LifterData;
+			lifterData.lifts = lifterData.lifts || {};
+
+			// Find the existing lift key if it exists
+			let existingLiftKey = null;
+			for (const [key, lift] of Object.entries(lifterData.lifts)) {
+				if (lift.liftUID === liftUID || lift.liftID === liftUID) {
+					existingLiftKey = key;
+					break;
+				}
+			}
+
+			if (existingLiftKey) {
+				// Update existing lift
+				lifterData.lifts[existingLiftKey] = {
+					...(updatedLift as Lift),
+					liftUID,
+					total,
+					dotsScore,
+					timestamp: serverTimestamp()
+				};
+			} else {
+				// Create new lift with a new key (document ID)
+				const newLiftKey = doc(collection(db, 'lifts')).id; // Generate a new document ID as key
+				lifterData.lifts[newLiftKey] = {
+					...(updatedLift as Lift),
+					liftUID,
+					total,
+					dotsScore,
+					timestamp: serverTimestamp()
+				};
 			}
 
 			await updateDoc(lifterDocRef, {
