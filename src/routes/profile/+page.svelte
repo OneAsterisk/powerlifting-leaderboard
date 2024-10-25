@@ -101,7 +101,7 @@
 
 	const updateInfo = async (event: Event) => {
 		event.preventDefault();
-		toggleUpdateModal();
+		// toggleUpdateModal();
 	};
 
 	const columns: { key: keyof Lift; label: string; numeric?: boolean; sortable?: boolean }[] = [
