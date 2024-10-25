@@ -74,15 +74,23 @@
 	{#if showResults && searchQuery}
 		<div class="search-results">
 			{#each searchResults as result}
-				<div
+				<button
+					type="button"
 					class="result-item"
 					on:click={() =>
 						searchType === 'universities'
 							? selectResult(result.split(' -')[0])
 							: selectResult(result)}
+					on:keydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							searchType === 'universities'
+								? selectResult(result.split(' -')[0])
+								: selectResult(result);
+						}
+					}}
 				>
 					{searchType === 'universities' ? result : result.name}
-				</div>
+				</button>
 			{/each}
 		</div>
 	{/if}

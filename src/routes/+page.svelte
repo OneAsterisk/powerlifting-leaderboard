@@ -1,9 +1,6 @@
 <script>
-	import SubmissionForm from '../components/SubmissionForm.svelte';
 	import Leaderboard from '../components/Leaderboard.svelte';
-	import { user } from '../stores/userStore';
 	import { Theme } from '@sveltestrap/sveltestrap';
-	import SearchBar from '../components/SearchBar.svelte';
 
 	const title = 'Collegiate Strength - Powerlifting Leaderboard';
 </script>

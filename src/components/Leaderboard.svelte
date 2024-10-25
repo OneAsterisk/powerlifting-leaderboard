@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { getAllLifts, getUserName } from '../dbFunctions';
-	import DataTable, { Head, Body, Row, Cell, Label, SortValue } from '@smui/data-table';
+	import DataTable, { Head, Body, Row, Cell, Pagination } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 	import type { Lift } from '../types';
 	import { Tooltip } from '@sveltestrap/sveltestrap';
+	import Select, { Option } from '@smui/select';
+	import { Label } from '@smui/common';
 
 	// Exported prop
 	export let university: string | undefined;
@@ -14,10 +16,24 @@
 	let topLifts: Lift[] = [];
 	let unsubscribe: () => void;
 	let sort: keyof Lift = 'rank';
-	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
+	const SortValue = {
+		ascending: 'ascending',
+		descending: 'descending'
+	} as const;
 
-	// Cache for usernames
-	let userNameCache: { [key: string]: string } = {};
+	let sortDirection: keyof typeof SortValue = 'ascending';
+
+	let rowsPerPage = 10;
+	let currentPage = 0;
+
+	$: start = currentPage * rowsPerPage;
+	$: end = Math.min(start + rowsPerPage, topLifts.length);
+	$: paginatedLifts = topLifts.slice(start, end);
+	$: lastPage = Math.max(Math.ceil(topLifts.length / rowsPerPage) - 1, 0);
+
+	$: if (currentPage > lastPage) {
+		currentPage = lastPage;
+	}
 
 	// Fetch all lifts on component mount
 	onMount(() => {
@@ -33,7 +49,7 @@
 		}
 	});
 
-	// Reactive statement to filter and sort lifts whenever `university` or `allLifts` changes
+	// Reactive statement to filter and sort lifts whenever university or allLifts changes
 	$: if (allLifts.length > 0) {
 		if (university) {
 			topLifts = allLifts.filter((lift) => lift.selectedUniversity.split(' -')[0] === university);
@@ -85,6 +101,29 @@
 		{ key: 'bench', label: 'Bench', numeric: true, sortable: true },
 		{ key: 'deadlift', label: 'Deadlift', numeric: true, sortable: true }
 	];
+
+	// Cache for usernames
+	let userNameCache: { [key: string]: string } = {};
+
+	// Scroll synchronization variables
+	let topScrollContainer: HTMLDivElement;
+	let bottomScrollContainer: HTMLDivElement;
+	let scrollWidth = 0;
+
+	onMount(() => {
+		if (bottomScrollContainer) {
+			scrollWidth = bottomScrollContainer.scrollWidth;
+		}
+	});
+
+	function syncScroll(e: Event) {
+		const target = e.target as HTMLDivElement;
+		if (target === topScrollContainer) {
+			bottomScrollContainer.scrollLeft = topScrollContainer.scrollLeft;
+		} else if (target === bottomScrollContainer) {
+			topScrollContainer.scrollLeft = bottomScrollContainer.scrollLeft;
+		}
+	}
 </script>
 
 <!-- Your component's markup -->
@@ -130,7 +169,7 @@
 			</Row>
 		</Head>
 		<Body>
-			{#each topLifts as lift (lift.rank)}
+			{#each paginatedLifts as lift (lift.rank)}
 				<Row>
 					{#each columns as column}
 						<Cell
@@ -159,6 +198,53 @@
 				</Row>
 			{/each}
 		</Body>
+
+		<Pagination slot="paginate">
+			<svelte:fragment slot="rowsPerPage">
+				<Label>Rows Per Page</Label>
+				<Select variant="outlined" bind:value={rowsPerPage} noLabel>
+					<Option value={10}>10</Option>
+					<Option value={25}>25</Option>
+					<Option value={50}>50</Option>
+				</Select>
+			</svelte:fragment>
+
+			<svelte:fragment slot="total">
+				{start + 1}-{end} of {topLifts.length}
+			</svelte:fragment>
+
+			<IconButton
+				class="material-icons"
+				action="first-page"
+				title="First page"
+				on:click={() => (currentPage = 0)}
+				disabled={currentPage === 0}>first_page</IconButton
+			>
+
+			<IconButton
+				class="material-icons"
+				action="prev-page"
+				title="Prev page"
+				on:click={() => currentPage--}
+				disabled={currentPage === 0}>chevron_left</IconButton
+			>
+
+			<IconButton
+				class="material-icons"
+				action="next-page"
+				title="Next page"
+				on:click={() => currentPage++}
+				disabled={currentPage === lastPage}>chevron_right</IconButton
+			>
+
+			<IconButton
+				class="material-icons"
+				action="last-page"
+				title="Last page"
+				on:click={() => (currentPage = lastPage)}
+				disabled={currentPage === lastPage}>last_page</IconButton
+			>
+		</Pagination>
 	</DataTable>
 </div>
 
@@ -182,8 +268,24 @@
 		width: 100%;
 		border: 1px solid #5b5656;
 		border-radius: 4px;
-		overflow: hidden;
+		overflow-x: auto;
+		scrollbar-width: thin;
+		-webkit-overflow-scrolling: touch;
 		font-size: 0.735rem;
+	}
+
+	:global(.mdc-data-table::-webkit-scrollbar) {
+		height: 12px;
+	}
+
+	:global(.mdc-data-table::-webkit-scrollbar-track) {
+		background: #2d2d2d;
+		border-radius: 6px;
+	}
+
+	:global(.mdc-data-table::-webkit-scrollbar-thumb) {
+		background: #0761c7;
+		border-radius: 6px;
 	}
 
 	:global(.mdc-data-table__header-cell) {
@@ -195,13 +297,28 @@
 	}
 
 	:global(.mdc-data-table__cell) {
+		width: 1px;
 		padding: 12px 16px;
 		color: aliceblue;
 	}
-
 	:global(.material-icons) {
 		font-size: 18px;
 		vertical-align: middle;
 		margin-left: 4px;
+	}
+	@media (max-width: 768px) {
+		.table-wrapper {
+			font-size: 0.6rem;
+		}
+		:global(.mdc-data-table__header-cell),
+		:global(.mdc-data-table__cell) {
+			padding: 8px;
+		}
+	}
+
+	@media (min-width: 769px) and (max-width: 1200px) {
+		.table-wrapper {
+			font-size: 0.8rem;
+		}
 	}
 </style>
