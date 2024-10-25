@@ -75,7 +75,7 @@
 			} catch (error) {
 				if (error instanceof Error && error.message === 'Lift exceeds maximum allowed weight.') {
 					alert(
-						'Your lifts seems to exceed the average and need to be verified! Please contact contact@collegiatestrength.com for support!'
+						'Your lifts seems to exceed the average and need to be verified! Please contact support@collegiatestrength.com for support!'
 					);
 				} else {
 					console.error('Error submitting lift:', error);
