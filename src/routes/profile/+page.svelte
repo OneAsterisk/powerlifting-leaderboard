@@ -39,6 +39,7 @@
 		userName: '',
 		selectedUniversity: ''
 	};
+
 	onMount(() => {
 		unsubscribeUser = user.subscribe((currentUser) => {
 			if (currentUser && $user) {
@@ -46,7 +47,6 @@
 					userLifts = lifts;
 				});
 
-				// Use getUserInfoNew with its callback
 				const unsubscribeUserInfo = getUserInfo($user.uid, (info) => {
 					if (info !== null) {
 						userInfo = info;
@@ -54,7 +54,6 @@
 					}
 				});
 
-				// Don't forget to unsubscribe when component is destroyed
 				return () => {
 					if (unsubscribeLifts) unsubscribeLifts();
 					if (unsubscribeUserInfo) unsubscribeUserInfo();
@@ -64,6 +63,7 @@
 			}
 		});
 	});
+
 	onDestroy(() => {
 		if (unsubscribeUser) {
 			unsubscribeUser();
@@ -104,8 +104,9 @@
 
 	const updateInfo = async (event: Event) => {
 		event.preventDefault();
-		toggleUpdateModal;
+		toggleUpdateModal();
 	};
+
 	const columns: { key: keyof Lift; label: string; numeric?: boolean; sortable?: boolean }[] = [
 		{ key: 'dotsScore', label: 'Dots', sortable: true },
 		{ key: 'squat', label: 'Squat', numeric: true },
@@ -116,16 +117,19 @@
 	];
 
 	let editingLift: Lift | null = null;
-	// let open = false;
+
 	const editLift = (lift: Lift) => {
 		openEditModal = true;
 		editingLift = lift;
 	};
+
 	const handleUpdateSettings = async () => {
 		if ($user) {
 			await updateUserInfo($user, updatedUserInfo);
+			toggleUpdateModal();
 		}
 	};
+
 	const handleLiftUpdated = () => {
 		editingLift = null;
 		if ($user) {
@@ -153,33 +157,36 @@
 {#if $user}
 	<h1>Welcome, {$user.displayName}!</h1>
 
-	<!-- Main content container -->
 	<div class="main-content">
+		<!-- Update Modal -->
 		<Modal isOpen={openUpdateModal}>
 			<ModalHeader>Update Your Information</ModalHeader>
 			<ModalBody>
-				<Form on:submit={handleUpdateSettings}>
+				<Form on:submit={updateInfo}>
 					<FormGroup>
 						<InputGroup>
 							<InputGroupText class="custom-label">Username:</InputGroupText>
-
 							<Input
 								type="text"
 								id="userName"
 								bind:value={updatedUserInfo.userName}
 								placeholder={'Previous: ' + userInfo.userName}
-								style="text-overflow: ellipsis; border-top-right-radius: 5px; border-bottom-right-radius: 5px;"
+								class="custom-input"
 							/>
 						</InputGroup>
 					</FormGroup>
 					<FormGroup>
 						<UniversitySelector bind:selectedUniversity={updatedUserInfo.selectedUniversity} />
 					</FormGroup>
+					<div class="modal-buttons">
+						<Button color="primary" type="submit" on:click={handleUpdateSettings}>Update</Button>
+						<Button color="secondary" on:click={toggleUpdateModal}>Cancel</Button>
+					</div>
 				</Form>
-				<Button color="primary" type="submit" on:click={handleUpdateSettings}>Update</Button>
-				<Button color="secondary" on:click={toggleUpdateModal}>Cancel</Button>
 			</ModalBody>
 		</Modal>
+
+		<!-- Edit Lift Modal -->
 		{#if editingLift}
 			<EditLiftForm
 				bind:open={openEditModal}
@@ -187,185 +194,245 @@
 				on:liftUpdated={handleLiftUpdated}
 			/>
 		{/if}
-		<!-- Left side: Lifts table -->
-		<div class="leaderboard-container">
-			<DataTable
-				sortable
-				bind:sort
-				bind:sortDirection
-				on:SMUIDataTable:sorted={handleSort}
-				table$aria-label="Personal Lifts"
-				style="width: 100%;"
-			>
-				<Head>
-					<Row>
-						{#each columns as column}
-							<Cell
-								numeric={column.numeric}
-								columnId={column.key}
-								sortable={column.sortable !== false}
-							>
-								{#if column.numeric}
-									<IconButton class="material-icons">arrow_upward</IconButton>
-								{/if}
-								<Label>{column.label}</Label>
-								{#if !column.numeric && column.sortable !== false}
-									<IconButton class="material-icons">arrow_upward</IconButton>
-								{/if}
-							</Cell>
-						{/each}
-						<Cell>
-							<Label><span>Action</span></Label>
-						</Cell>
-					</Row>
-				</Head>
-				<Body>
-					{#each userLifts as lift}
+
+		<div class="content-wrapper">
+			<!-- Leaderboard Table -->
+			<div class="leaderboard-container">
+				<DataTable
+					sortable
+					bind:sort
+					bind:sortDirection
+					on:SMUIDataTable:sorted={handleSort}
+					table$aria-label="Personal Lifts"
+				>
+					<Head>
 						<Row>
 							{#each columns as column}
-								<Cell numeric={column.numeric}>{lift[column.key]}</Cell>
+								<Cell
+									numeric={column.numeric}
+									columnId={column.key}
+									sortable={column.sortable !== false}
+								>
+									{#if column.numeric}
+										<IconButton class="material-icons">arrow_upward</IconButton>
+									{/if}
+									<Label>{column.label}</Label>
+									{#if !column.numeric && column.sortable !== false}
+										<IconButton class="material-icons">arrow_upward</IconButton>
+									{/if}
+								</Cell>
 							{/each}
 							<Cell>
-								<Label><Button on:click={() => editLift(lift)}>Edit</Button></Label>
+								<Label>Action</Label>
 							</Cell>
 						</Row>
-					{/each}
-				</Body>
-			</DataTable>
+					</Head>
+					<Body>
+						{#each userLifts as lift}
+							<Row>
+								{#each columns as column}
+									<Cell numeric={column.numeric}>{lift[column.key]}</Cell>
+								{/each}
+								<Cell>
+									<Button on:click={() => editLift(lift)}>Edit</Button>
+								</Cell>
+							</Row>
+						{/each}
+					</Body>
+				</DataTable>
+			</div>
+
+			<!-- Settings Panel -->
+			<aside class="settings-panel">
+				{#if userInfo}
+					<h2>Settings</h2>
+					<div class="settings-option">
+						<div class="settings-label">Username:</div>
+						<div class="settings-value">{userInfo.userName}</div>
+					</div>
+					<div class="settings-option">
+						<div class="settings-label">University:</div>
+						<div class="settings-value">{userInfo.selectedUniversity}</div>
+					</div>
+					<div class="settings-buttons">
+						<Button type="button" on:click={toggleUpdateModal} color="primary">Update Info</Button>
+						<Button on:click={logout} color="danger">Sign Out</Button>
+					</div>
+				{:else}
+					<p>Loading user information...</p>
+				{/if}
+			</aside>
 		</div>
-		<aside class="settings-panel">
-			{#if userInfo}
-				<h2>Settings</h2>
-				<div class="settings-option">
-					<div class="settings-label">Username:</div>
-					<div class="settings-label">{userInfo.userName}</div>
-				</div>
-				<div class="settings-option">
-					<div class="settings-label">University:</div>
-					<div class="settings-label">{userInfo.selectedUniversity}</div>
-				</div>
-				<div style="display: flex; justify-content: space-between; width: 100%">
-					<Button type="button" on:click={toggleUpdateModal} color="primary">Update Info</Button>
-					<Button on:click={logout} color="danger">Sign Out</Button>
-				</div>
-			{:else}
-				<p>Loading user information...</p>
-			{/if}
-		</aside>
 	</div>
 {:else}
-	<p>Please sign in to access all features:</p>
-	<Button on:click={login}>Sign In with Google</Button>
+	<div class="login-container">
+		<p>Please sign in to access all features:</p>
+		<Button on:click={login}>Sign In with Google</Button>
+	</div>
 {/if}
-
 <style>
-	h1 {
-		color: var(--dark-accent-blue);
-		text-align: center;
-	}
-	:global(.custom-label) {
-		font-weight: bold;
-		display: flex;
-		justify-content: center;
-		width: 7.5rem;
-		border-radius: 0.25rem 0 0 0.25rem;
-		padding: 0.375rem 0.75rem;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
-	.main-content {
-		display: flex;
-		flex-direction: row;
-		align-items: flex-start;
-		width: 80%;
-		margin: auto;
-		margin-top: 20px;
-		margin-right: 30px;
-	}
+    h1 {
+        color: var(--dark-accent-blue);
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+    }
 
-	.leaderboard-container {
-		flex: 3;
-		width: 65%;
-		margin-right: 20px;
-	}
+    h2 {
+        color: #fff;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+    }
 
-	.settings-panel {
-		flex: 1;
-		background-color: #2a2a2e;
-		padding: 10px;
-		border-radius: 8px;
-	}
-	.settings-option {
-		display: flex;
-		flex-direction: row;
-		row-gap: 1.5rem;
-		align-items: center;
-		width: 100%;
-		border: 1px solid #2a2a2e;
-		border-radius: 5px;
-		margin-bottom: 15px; /* Add this line to create space between items */
-	}
-	.settings-label:first-child {
-		width: 25%;
-	}
-	.settings-label {
-		width: 75%;
-		text-overflow: ellipsis;
-		overflow: hidden;
-	}
-	:global(.mdc-data-table) {
-		width: 100%;
-		border: 1px solid #5b5656;
-		border-radius: 4px;
-		overflow: hidden;
-		text-align: center;
-	}
+    .main-content {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
 
-	:global(.mdc-data-table__table) {
-		table-layout: auto;
-	}
+    .content-wrapper {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
 
-	:global(.mdc-data-table__header-cell) {
-		font-weight: bold;
-		text-transform: uppercase;
-		background-color: #0761c7;
-		font-size: 1.125rem;
-		color: aliceblue;
-		text-overflow: ellipsis;
-	}
-	:global(.mdc-data-table__cell-numeric) {
-		width: 5%;
-	}
+    .leaderboard-container {
+        flex: 1;
+    }
 
-	/* Responsive Styles */
-	@media (max-width: 850px) {
-		.main-content {
-			flex-direction: column;
-			width: 90%;
-			margin-right: 0;
-		}
+    .settings-panel {
+        width: 300px;
+        background-color: #2a2a2e;
+        padding: 1.5rem;
+        border-radius: 8px;
+        height: fit-content;
+    }
 
-		.leaderboard-container,
-		.settings-panel {
-			width: 100%;
-			margin-right: 0;
-			margin-bottom: 20px; /* Add spacing between stacked elements */
-		}
+    .settings-option {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background-color: #333;
+        border-radius: 4px;
+    }
 
-		.settings-panel {
-			padding: 15px; /* Optional: Adjust padding for better spacing on mobile */
-		}
-		:global(.modal-header, .modal-body, .modal-footer) {
-			background-color: #2c2c2c;
-			border-color: #444343;
-		}
-		:global(.modal-body) {
-			border-bottom-left-radius: 3%;
-			border-bottom-right-radius: 3%;
-		}
-		h1 {
-			font-size: 1.5rem; /* Optional: Adjust heading size for better readability */
-		}
-	}
+    .settings-label {
+        font-weight: bold;
+        color: #888;
+        font-size: 0.9rem;
+    }
+
+    .settings-value {
+        color: #fff;
+        word-break: break-word;
+    }
+
+    .settings-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .login-container {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    :global(.custom-label) {
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        width: 7.5rem;
+        border-radius: 0.25rem 0 0 0.25rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    :global(.custom-input) {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+        text-overflow: ellipsis;
+    }
+
+    :global(.mdc-data-table) {
+        width: 100%;
+        border: 1px solid #5b5656;
+        border-radius: 4px;
+        background-color: #2a2a2e;
+    }
+
+    :global(.mdc-data-table__header-cell) {
+        font-weight: bold;
+        text-transform: uppercase;
+        background-color: #0761c7;
+        font-size: 1rem;
+        color: aliceblue;
+        padding: 0.75rem;
+    }
+
+    :global(.mdc-data-table__cell) {
+        color: #fff;
+        padding: 0.75rem;
+        border-bottom: 1px solid #444;
+    }
+
+    :global(.modal-content) {
+        background-color: #2a2a2e;
+        color: #fff;
+    }
+
+    :global(.modal-header) {
+        border-bottom: 1px solid #444;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 1300px) {
+        .content-wrapper {
+            flex-direction: column;
+        }
+
+        .settings-panel {
+            width: 50%;
+			margin: 0 auto;
+            margin-top: 2rem;
+        }
+
+        .settings-buttons {
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .main-content {
+            width: 100%;
+            padding: 0 0.5rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+        }
+
+        .settings-buttons {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        :global(.custom-label) {
+            width: 6rem;
+            font-size: 0.9rem;
+        }
+    }
 </style>

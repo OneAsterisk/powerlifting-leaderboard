@@ -11,7 +11,6 @@
 		<Navbar />
 	</header>
 	<main>
-		<div style="display: flex; flex-direction: column; align-items: flex-end; "></div>
 		<slot />
 	</main>
 	<Footer />

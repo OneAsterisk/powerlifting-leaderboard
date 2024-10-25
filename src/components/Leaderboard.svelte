@@ -35,9 +35,23 @@
 	$: if (currentPage > lastPage) {
 		currentPage = lastPage;
 	}
-
+	let screenWidth: number;
+	let screenSize: string;
 	// Fetch all lifts on component mount
 	onMount(() => {
+		screenWidth = window.innerWidth;
+		if(screenWidth > 1500){
+			screenSize = 'xl';
+		}
+		else if(screenWidth > 1280){
+			screenSize = 'lg';
+		} else if(screenWidth >980){
+			screenSize = 'md';
+		} else if(screenWidth > 600){
+			screenSize = 'sm';
+		} else {
+			screenSize = 'xs';
+		}
 		unsubscribe = getAllLifts((updatedLifts) => {
 			allLifts = updatedLifts;
 		});
@@ -109,26 +123,6 @@
 	// Cache for usernames
 	let userNameCache: { [key: string]: string } = {};
 
-	// Scroll synchronization variables
-	let topScrollContainer: HTMLDivElement;
-	let bottomScrollContainer: HTMLDivElement;
-	let scrollWidth = 0;
-
-	onMount(() => {
-		if (bottomScrollContainer) {
-			scrollWidth = bottomScrollContainer.scrollWidth;
-		}
-	});
-
-	function syncScroll(e: Event) {
-		const target = e.target as HTMLDivElement;
-		if (target === topScrollContainer) {
-			bottomScrollContainer.scrollLeft = topScrollContainer.scrollLeft;
-		} else if (target === bottomScrollContainer) {
-			topScrollContainer.scrollLeft = bottomScrollContainer.scrollLeft;
-		}
-	}
-
 	const convertWeight = (weight: number, unit: 'lbs' | 'kg'): number => {
 		if (unit === 'kg') {
 			return Math.round((weight / 2.205) * 100) / 100;
@@ -137,143 +131,149 @@
 	};
 </script>
 
-<!-- Your component's markup -->
 <div class="leaderboard-container">
 	<h1>{university ? `${university} Leaderboard` : 'Global Leaderboard'}</h1>
 
-	<DataTable
-		sortable
-		bind:sort
-		bind:sortDirection
-		on:SMUIDataTable:sorted={handleSort}
-		table$aria-label="Powerlifting Leaderboard"
-		style="width: 100%;"
-	>
-		<Head>
-			<Row>
-				{#each columns as column, i}
-					<Cell
-						numeric={column.numeric}
-						columnId={column.key}
-						sortable={column.sortable ?? false}
-						style="width: 5%"
-						id={column.sortable
-							? 'sorting-cell' + i
-							: column.key === 'selectedUniversity'
-								? 'university-cell'
-								: ''}
-					>
-						{#if column.numeric}
-							<IconButton class="material-icons">arrow_upward</IconButton>
-						{/if}
-						<Label>{column.label}</Label>
-						{#if !column.numeric && column.sortable === false}
-							<IconButton class="material-icons">arrow_upward</IconButton>
-						{/if}
-					</Cell>
-					<Tooltip placement="top" target="university-cell" isOpen={false}
-						>Click on a university to view its leaderboard</Tooltip
-					>
-					<Tooltip placement="top" target={'sorting-cell' + i} isOpen={false}
-						>Sorting adjusts the ranking</Tooltip
-					>
-				{/each}
-			</Row>
-		</Head>
-
-		<Body>
-			{#each paginatedLifts as lift (lift.rank)}
+	<div class="table-wrapper">
+		<DataTable
+			sortable
+			bind:sort
+			bind:sortDirection
+			on:SMUIDataTable:sorted={handleSort}
+			table$aria-label="Powerlifting Leaderboard"
+		>
+			<Head>
 				<Row>
-					{#each columns as column}
+					{#each columns as column, i}
 						<Cell
 							numeric={column.numeric}
-							id={column.key === 'displayName' ? lift[column.key] : ''}
+							columnId={column.key}
+							sortable={column.sortable ?? false}
+							id={column.sortable
+								? 'sorting-cell' + i
+								: column.key === 'selectedUniversity'
+									? 'university-cell'
+									: ''}
 						>
-							{#if column.key === 'displayName'}
-								{#await loadUserName(lift[column.key])}
-									<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a>
-								{:then userName}
-									{#if userName !== ''}
-										<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a> ({userName})
-									{:else}
-										<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a>
-									{/if}
-								{/await}
-							{:else if column.key === 'selectedUniversity'}
-								<a href={`/uni/${lift[column.key].split(' -')[0]}`}
-									>{lift[column.key].split(' -')[0]}</a
-								>
-							{:else if column.key === 'bodyWeight' || column.key === 'total' || column.key === 'squat' || column.key === 'bench' || column.key === 'deadlift'}
-								{!lift[column.key]
-									? 'N/A'
-									: convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
-							{:else}
-								{lift[column.key]}
+							{#if column.numeric}
+								<IconButton class="material-icons">arrow_upward</IconButton>
+							{/if}
+							<Label>{column.label}</Label>
+							{#if !column.numeric && column.sortable === false}
+								<IconButton class="material-icons">arrow_upward</IconButton>
 							{/if}
 						</Cell>
+						<Tooltip placement="top" target="university-cell" isOpen={false}
+							>Click on a university to view its leaderboard</Tooltip
+						>
+						<Tooltip placement="top" target={'sorting-cell' + i} isOpen={false}
+							>Sorting adjusts the ranking</Tooltip
+						>
 					{/each}
 				</Row>
-			{/each}
-		</Body>
+			</Head>
 
-		<Pagination slot="paginate">
-			<svelte:fragment slot="rowsPerPage">
-				<Label>Rows Per Page</Label>
-				<Select variant="outlined" bind:value={rowsPerPage} noLabel>
-					<Option value={10}>10</Option>
-					<Option value={25}>25</Option>
-					<Option value={50}>50</Option>
-				</Select>
-			</svelte:fragment>
+			<Body>
+				{#each paginatedLifts as lift (lift.rank)}
+					<Row>
+						{#each columns as column}
+							<Cell
+								numeric={column.numeric}
+								id={column.key === 'displayName' ? lift[column.key] : ''}
+							>
+								{#if column.key === 'displayName'}
+									{#await loadUserName(lift[column.key])}
+										<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a>
+									{:then userName}
+										{#if userName !== ''}
+											<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a> ({userName})
+										{:else}
+											<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a>
+										{/if}
+									{/await}
+								{:else if column.key === 'selectedUniversity'}
+									<a href={`/uni/${lift[column.key].split(' -')[0]}`}
+										>{lift[column.key].split(' -')[0]}</a
+									>
+								{:else if column.key === 'bodyWeight' || column.key === 'total' || column.key === 'squat' || column.key === 'bench' || column.key === 'deadlift'}
+									{!lift[column.key]
+										? 'N/A'
+										: convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
+								{:else}
+									{lift[column.key]}
+								{/if}
+							</Cell>
+						{/each}
+					</Row>
+				{/each}
+			</Body>
+			<Pagination slot="paginate">
+				<svelte:fragment slot="rowsPerPage">
+					<Label>Rows Per Page</Label>
+					<Select variant="outlined" bind:value={rowsPerPage} noLabel>
+						<Option value={10}>10</Option>
+						<Option value={25}>25</Option>
+						<Option value={50}>50</Option>
+					</Select>
+				</svelte:fragment>
 
-			<svelte:fragment slot="total">
-				{start + 1}-{end} of {topLifts.length}
-			</svelte:fragment>
+				<svelte:fragment slot="total">
+					{start + 1}-{end} of {topLifts.length}
+				</svelte:fragment>
 
-			<IconButton
-				class="material-icons"
-				action="first-page"
-				title="First page"
-				on:click={() => (currentPage = 0)}
-				disabled={currentPage === 0}>first_page</IconButton
-			>
+				<IconButton
+					class="material-icons"
+					action="first-page"
+					title="First page"
+					on:click={() => (currentPage = 0)}
+					disabled={currentPage === 0}>first_page</IconButton
+				>
 
-			<IconButton
-				class="material-icons"
-				action="prev-page"
-				title="Prev page"
-				on:click={() => currentPage--}
-				disabled={currentPage === 0}>chevron_left</IconButton
-			>
+				<IconButton
+					class="material-icons"
+					action="prev-page"
+					title="Prev page"
+					on:click={() => currentPage--}
+					disabled={currentPage === 0}>chevron_left</IconButton
+				>
 
-			<IconButton
-				class="material-icons"
-				action="next-page"
-				title="Next page"
-				on:click={() => currentPage++}
-				disabled={currentPage === lastPage}>chevron_right</IconButton
-			>
+				<IconButton
+					class="material-icons"
+					action="next-page"
+					title="Next page"
+					on:click={() => currentPage++}
+					disabled={currentPage === lastPage}>chevron_right</IconButton
+				>
 
-			<IconButton
-				class="material-icons"
-				action="last-page"
-				title="Last page"
-				on:click={() => (currentPage = lastPage)}
-				disabled={currentPage === lastPage}>last_page</IconButton
-			>
-		</Pagination>
-	</DataTable>
+				<IconButton
+					class="material-icons"
+					action="last-page"
+					title="Last page"
+					on:click={() => (currentPage = lastPage)}
+					disabled={currentPage === lastPage}>last_page</IconButton
+				>
+			</Pagination>
+		</DataTable>
+	</div>
 </div>
 
 <style>
 	a {
 		color: aliceblue;
 	}
+	
 	.leaderboard-container {
 		width: 100%;
 		max-width: 100%;
 		margin: 0 auto;
-		padding: 0px;
+		overflow-x: hidden; /* Prevent horizontal scroll on container */
+	}
+
+	.table-wrapper {
+		width: 100%;
+		border-radius: 5px;
+		overflow-x: auto; /* Enable horizontal scroll only for table */
+		-webkit-overflow-scrolling: touch;
 	}
 
 	h1 {
@@ -282,27 +282,11 @@
 	}
 
 	:global(.mdc-data-table) {
-		width: 100%;
+		width: 100%; /* Changed from 95% */
+		min-width: max-content; /* Ensure table doesn't shrink below content width */
 		border: 1px solid #5b5656;
 		border-radius: 4px;
-		overflow-x: auto;
-		scrollbar-width: thin;
-		-webkit-overflow-scrolling: touch;
 		font-size: 0.735rem;
-	}
-
-	:global(.mdc-data-table::-webkit-scrollbar) {
-		height: 12px;
-	}
-
-	:global(.mdc-data-table::-webkit-scrollbar-track) {
-		background: #2d2d2d;
-		border-radius: 6px;
-	}
-
-	:global(.mdc-data-table::-webkit-scrollbar-thumb) {
-		background: #0761c7;
-		border-radius: 6px;
 	}
 
 	:global(.mdc-data-table__header-cell) {
@@ -311,30 +295,43 @@
 		background-color: #0761c7;
 		font-size: 1.125rem;
 		color: aliceblue;
+		white-space: nowrap; /* Prevent header text from wrapping */
 	}
 
 	:global(.mdc-data-table__cell) {
-		width: 1px;
+		width: auto; /* Changed from 1px */
+		min-width: max-content; /* Ensure cells don't shrink below content */
 		padding: 12px 16px;
 		color: aliceblue;
+		white-space: nowrap; /* Prevent cell content from wrapping */
 	}
+
 	:global(.material-icons) {
 		font-size: 18px;
 		vertical-align: middle;
 		margin-left: 4px;
 	}
+
+	:global(.mdc-data-table::-webkit-scrollbar-thumb) {
+		background: #0761c7;
+		border-radius: 6px;
+	}
+
 	@media (max-width: 768px) {
-		.table-wrapper {
+		.leaderboard-container {
 			font-size: 0.6rem;
 		}
 		:global(.mdc-data-table__header-cell),
 		:global(.mdc-data-table__cell) {
 			padding: 8px;
 		}
+		:global(.mdc-data-table__header-cell) {
+			font-size: 0.8rem;
+		}
 	}
 
 	@media (min-width: 769px) and (max-width: 1200px) {
-		.table-wrapper {
+		.leaderboard-container {
 			font-size: 0.8rem;
 		}
 	}
