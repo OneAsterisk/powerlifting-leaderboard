@@ -101,6 +101,25 @@ export const submitLift = async (
 	liftType: string
 ): Promise<void> => {
 	if (user) {
+		const validateLift = (
+			bodyWeight: number,
+			lift: number,
+			liftType: 'squat' | 'bench' | 'deadlift'
+		): boolean => {
+			const maxRatios = {
+				squat: 5, // world record territory is around 5x bodyweight
+				bench: 2.5, // world record territory is around 3.5x bodyweight
+				deadlift: 5 // world record territory is around 5.5x bodyweight
+			};
+			return lift <= bodyWeight * maxRatios[liftType];
+		};
+		if (
+			!validateLift(bodyWeight, squat, 'squat') ||
+			!validateLift(bodyWeight, bench, 'bench') ||
+			!validateLift(bodyWeight, deadlift, 'deadlift')
+		) {
+			throw new Error('Lift exceeds maximum allowed weight.');
+		}
 		if (get(weightUnit) === 'kg') {
 			bodyWeight = bodyWeight * 2.205;
 			squat = squat * 2.205;

@@ -73,8 +73,14 @@
 				);
 				alert('Lift submitted successfully!');
 			} catch (error) {
-				console.error('Error submitting lift:', error);
-				alert('Error submitting lift. Please try again.');
+				if (error instanceof Error && error.message === 'Lift exceeds maximum allowed weight.') {
+					alert(
+						'Your lifts seems to exceed the average and need to be verified! Please contact contact@collegiatestrength.com for support!'
+					);
+				} else {
+					console.error('Error submitting lift:', error);
+					alert('Error submitting lift. Please try again.');
+				}
 			}
 		} else {
 			alert('Please sign in to submit your lift.');
