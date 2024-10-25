@@ -300,9 +300,11 @@
         margin-top: 2rem;
     }
 
-    .leaderboard-container {
-        flex: 1;
-    }
+	.leaderboard-container {
+		width: 100%;
+		max-width: 100%;
+		margin: 0 auto;
+	}
 
     .settings-panel {
         width: 300px;
