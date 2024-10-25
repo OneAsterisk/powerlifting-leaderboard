@@ -88,7 +88,7 @@
 {#if $user}
 	<header class="w-75 mx-auto">
 		<h1>Submit Your Lifts</h1>
-		<h6>Enter everything in pounds</h6>
+		<h6>Select your weight unit up top! That is how everything will be entered</h6>
 	</header>
 
 	<Form on:submit={handleSubmit} class="w-75 mx-auto">

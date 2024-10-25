@@ -1,7 +1,8 @@
 <script>
-	import { Navbar, NavbarBrand, Nav, NavItem, NavLink, Dropdown } from '@sveltestrap/sveltestrap';
+	import { Navbar, NavbarBrand, Nav, NavItem, NavLink, Button } from '@sveltestrap/sveltestrap';
 	import { user } from '../stores/userStore';
 	import SearchBar from './SearchBar.svelte';
+	import WeightTypeSelector from './WeightTypeSelector.svelte';
 </script>
 
 <Navbar color="dark" dark expand="md">
@@ -10,8 +11,12 @@
 	</NavbarBrand>
 	<Nav navbar>
 		<NavItem style="padding-top: 5px;">
+			<WeightTypeSelector />
+		</NavItem>
+		<NavItem style="padding-top: 5px;">
 			<SearchBar />
 		</NavItem>
+
 		<NavItem>
 			<NavLink href="/">Home</NavLink>
 		</NavItem>

@@ -4,9 +4,10 @@
 	import DataTable, { Head, Body, Row, Cell, Pagination } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 	import type { Lift } from '../types';
-	import { Tooltip } from '@sveltestrap/sveltestrap';
+	import { Tooltip, ButtonGroup, Button } from '@sveltestrap/sveltestrap';
 	import Select, { Option } from '@smui/select';
 	import { Label } from '@smui/common';
+	import { weightUnit } from '../stores/weightUnitStore';
 
 	// Exported prop
 	export let university: string | undefined;
@@ -96,6 +97,7 @@
 		{ key: 'displayName', label: 'Name' },
 		{ key: 'selectedUniversity', label: 'University' },
 		{ key: 'dotsScore', label: 'Dots', numeric: true, sortable: true },
+		{ key: 'bodyWeight', label: 'Body Weight', numeric: true, sortable: true },
 		{ key: 'total', label: 'Total', numeric: true, sortable: true },
 		{ key: 'squat', label: 'Squat', numeric: true, sortable: true },
 		{ key: 'bench', label: 'Bench', numeric: true, sortable: true },
@@ -124,11 +126,19 @@
 			topScrollContainer.scrollLeft = bottomScrollContainer.scrollLeft;
 		}
 	}
+
+	const convertWeight = (weight: number, unit: 'lbs' | 'kg'): number => {
+		if (unit === 'kg') {
+			return Math.round((weight / 2.205) * 100) / 100;
+		}
+		return weight;
+	};
 </script>
 
 <!-- Your component's markup -->
 <div class="leaderboard-container">
 	<h1>{university ? `${university} Leaderboard` : 'Global Leaderboard'}</h1>
+
 	<DataTable
 		sortable
 		bind:sort
@@ -168,6 +178,7 @@
 				{/each}
 			</Row>
 		</Head>
+
 		<Body>
 			{#each paginatedLifts as lift (lift.rank)}
 				<Row>
@@ -190,6 +201,10 @@
 								<a href={`/uni/${lift[column.key].split(' -')[0]}`}
 									>{lift[column.key].split(' -')[0]}</a
 								>
+							{:else if column.key === 'bodyWeight' || column.key === 'total' || column.key === 'squat' || column.key === 'bench' || column.key === 'deadlift'}
+								{!lift[column.key]
+									? 'N/A'
+									: convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
 							{:else}
 								{lift[column.key]}
 							{/if}

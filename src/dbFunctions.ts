@@ -19,8 +19,9 @@ import {
 import type { User } from 'firebase/auth';
 import type { Lift, UserInfo } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { weightUnit } from './stores/weightUnitStore';
+import { get } from 'svelte/store';
 
-// import { updated } from '$app/stores';
 // Interface for a lifter's document
 interface LifterData {
 	userId: string;
@@ -28,6 +29,31 @@ interface LifterData {
 	gender: string;
 	selectedUniversity: string;
 	lifts: { [key: string]: Lift };
+}
+
+function ageCoefCalc(age: number, dotsScore: number): number {
+	switch (age) {
+		case 14:
+			return parseFloat((dotsScore * 1.23).toFixed(2));
+		case 15:
+			return parseFloat((dotsScore * 1.18).toFixed(2));
+		case 16:
+			return parseFloat((dotsScore * 1.13).toFixed(2));
+		case 17:
+			return parseFloat((dotsScore * 1.08).toFixed(2));
+		case 18:
+			return parseFloat((dotsScore * 1.06).toFixed(2));
+		case 19:
+			return parseFloat((dotsScore * 1.04).toFixed(2));
+		case 20:
+			return parseFloat((dotsScore * 1.03).toFixed(2));
+		case 21:
+			return parseFloat((dotsScore * 1.02).toFixed(2));
+		case 22:
+			return parseFloat((dotsScore * 1.01).toFixed(2));
+		default:
+			return parseFloat(dotsScore.toFixed(2));
+	}
 }
 
 function Calculate_DOTS(bodyWeight: number, total: number, gender: string): number {
@@ -75,9 +101,16 @@ export const submitLift = async (
 	liftType: string
 ): Promise<void> => {
 	if (user) {
+		if (get(weightUnit) === 'kg') {
+			bodyWeight = bodyWeight * 2.205;
+			squat = squat * 2.205;
+			bench = bench * 2.205;
+			deadlift = deadlift * 2.205;
+		}
 		try {
 			const total: number = bench + squat + deadlift;
-			const dotsScore = Calculate_DOTS(bodyWeight, total, gender);
+
+			const dotsScore: number = ageCoefCalc(age, Calculate_DOTS(bodyWeight, total, gender));
 
 			// Create a new lift document in the 'lifts' collection
 			const liftDocRef = await addDoc(collection(db, 'lifts'), {
@@ -131,9 +164,7 @@ export const submitLift = async (
 	} else {
 		throw new Error('User not authenticated');
 	}
-};
-
-// Function to get top lifts
+}; // Function to get top lifts
 export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => {
 	const q = query(collection(db, 'lifts'), orderBy('dotsScore', 'desc'));
 	let count = 0;
@@ -160,6 +191,51 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 	});
 	return unsubscribe;
 };
+
+// export const updateAllDotsScores = async (): Promise<void> => {
+// 	try {
+// 		// Step 1: Fetch all the lifts from Firestore
+// 		const liftsCollection = collection(db, 'lifts');
+// 		const querySnapshot = await getDocs(liftsCollection);
+
+// 		// Step 2: Loop through each lift and update the DOTS score
+// 		querySnapshot.forEach(async (docSnapshot) => {
+// 			const liftData = docSnapshot.data() as Lift;
+// 			const { age, dotsScore, userId } = liftData;
+
+// 			if (age && dotsScore) {
+// 				// Step 3: Calculate the new DOTS score
+// 				const newDotsScore = ageCoefCalc(age, dotsScore);
+
+// 				// Step 4: Update the lift document with the new DOTS score
+// 				const liftDocRef = doc(db, 'lifts', docSnapshot.id);
+// 				await updateDoc(liftDocRef, { dotsScore: newDotsScore });
+
+// 				// Step 5: Update the lifter's document with the new DOTS score
+// 				const lifterQuery = query(
+// 					collection(db, 'lifters'),
+// 					where('userId', '==', userId),
+// 					limit(1)
+// 				);
+// 				const lifterSnapshot = await getDocs(lifterQuery);
+
+// 				if (!lifterSnapshot.empty) {
+// 					const lifterDoc = lifterSnapshot.docs[0];
+// 					const lifterRef = doc(db, 'lifters', lifterDoc.id);
+// 					await updateDoc(lifterRef, {
+// 						['lifts.' + docSnapshot.id + '.dotsScore']: newDotsScore
+// 					});
+// 				}
+
+// 				console.log(`Updated DOTS score for lift ID ${docSnapshot.id} and lifter document`);
+// 			}
+// 		});
+
+// 		console.log('All DOTS scores have been updated.');
+// 	} catch (error) {
+// 		console.error('Error updating DOTS scores:', error);
+// 	}
+// };
 export const getUserName = async (displayName: string): Promise<string> => {
 	const q = query(collection(db, 'lifters'), where('displayName', '==', displayName), limit(1));
 	const querySnapshot = await getDocs(q);

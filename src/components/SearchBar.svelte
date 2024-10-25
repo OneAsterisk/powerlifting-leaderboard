@@ -3,7 +3,7 @@
 	import { ButtonGroup, Button, Tooltip } from '@sveltestrap/sveltestrap';
 	import { searchPeople } from '../dbFunctions';
 	let searchQuery = '';
-	let searchResults = [];
+	let searchResults: any[] = [];
 	let showResults = false;
 	let searchType = 'universities'; // or 'people'
 	let searchTimeout: ReturnType<typeof setTimeout>;

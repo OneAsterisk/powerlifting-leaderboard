@@ -45,7 +45,6 @@
 		userLifts = userLifts;
 	}
 	$: if (displayName) {
-		console.log(displayName);
 		if (unsubscribeLifts) {
 			unsubscribeLifts();
 		}
