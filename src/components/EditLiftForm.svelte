@@ -14,7 +14,9 @@
 		InputGroup
 	} from '@sveltestrap/sveltestrap';
 	import type { Lift } from '../types';
+	import { weightUnit } from '../stores/weightUnitStore';
 	import UniversitySelector from './UniversitySelector.svelte';
+	import { convertWeight } from '../helpers';
 	export let lift: Lift;
 	export let open: boolean;
 	let squat = lift.squat;
@@ -24,8 +26,18 @@
 	let age = lift.age;
 	let liftType = lift.liftType;
 	let selectedUniversity = lift.selectedUniversity || '';
-	let size;
 
+	$: displaySquat = $weightUnit === 'kg' ? convertWeight(squat, 'kg') : squat;
+    $: displayBench = $weightUnit === 'kg' ? convertWeight(bench, 'kg') : bench;
+    $: displayDeadlift = $weightUnit === 'kg' ? convertWeight(deadlift, 'kg') : deadlift;
+    $: displayBodyWeight = $weightUnit === 'kg' ? convertWeight(bodyWeight, 'kg') : bodyWeight;
+
+	const convertToLbs = (weight: number, unit: 'lbs' | 'kg'): number => {
+        if (unit === 'kg') {
+            return Math.round(weight * 2.205 * 100) / 100;
+        }
+        return weight;
+    };
 	const toggle = () => {
 		open = !open;
 	};
@@ -43,53 +55,58 @@
 			}
 		}
 	};
-
 	const handleSubmit = async (event: Event) => {
-		event.preventDefault();
-		if ($user) {
-			try {
-				const updatedLift = {
-					squat,
-					bench,
-					deadlift,
-					bodyWeight,
-					age,
-					liftType,
-					selectedUniversity,
-					total: squat + bench + deadlift
-				};
-				await updateLift($user, lift.liftUID ? lift.liftUID : lift.liftID, updatedLift);
-				dispatch('liftUpdated');
-				toggle(); // Close modal after successful update
-			} catch (error) {
-				console.error('Error updating lift:', error);
-				alert('Error updating lift. Please try again.');
-			}
-		}
-	};
+        event.preventDefault();
+        if ($user) {
+            try {
+                // Convert all weights back to lbs before saving
+                const lbsSquat = $weightUnit === 'kg' ? convertToLbs(displaySquat, 'kg') : displaySquat;
+                const lbsBench = $weightUnit === 'kg' ? convertToLbs(displayBench, 'kg') : displayBench;
+                const lbsDeadlift = $weightUnit === 'kg' ? convertToLbs(displayDeadlift, 'kg') : displayDeadlift;
+                const lbsBodyWeight = $weightUnit === 'kg' ? convertToLbs(displayBodyWeight, 'kg') : displayBodyWeight;
+
+                const updatedLift = {
+                    squat: lbsSquat,
+                    bench: lbsBench,
+                    deadlift: lbsDeadlift,
+                    bodyWeight: lbsBodyWeight,
+                    age,
+                    liftType,
+                    selectedUniversity,
+                    total: lbsSquat + lbsBench + lbsDeadlift
+                };
+                await updateLift($user, lift.liftUID ? lift.liftUID : lift.liftID, updatedLift);
+                dispatch('liftUpdated');
+                toggle();
+            } catch (error) {
+                console.error('Error updating lift:', error);
+                alert('Error updating lift. Please try again.');
+            }
+        }
+    };
 </script>
 
 <div id="editLiftForm">
 	<Modal isOpen={open} class="editForm">
-		<ModalHeader class="editForm">Edit Lift</ModalHeader>
+		<ModalHeader class="editForm">Edit Lift ({$weightUnit})</ModalHeader>
 		<ModalBody class="editForm">
 			<Form on:submit={handleSubmit}>
-				<FormGroup>
-					<Label for="squat">Squat</Label>
-					<Input type="number" id="squat" bind:value={squat} required />
-				</FormGroup>
-				<FormGroup>
-					<Label for="bench">Bench</Label>
-					<Input type="number" id="bench" bind:value={bench} required />
-				</FormGroup>
-				<FormGroup>
-					<Label for="deadlift">Deadlift</Label>
-					<Input type="number" id="deadlift" bind:value={deadlift} required />
-				</FormGroup>
-				<FormGroup>
-					<Label for="bodyWeight">Body Weight</Label>
-					<Input type="number" id="bodyWeight" bind:value={bodyWeight} required />
-				</FormGroup>
+			<FormGroup>
+                <Label for="squat">Squat ({$weightUnit})</Label>
+                <Input type="number" id="squat" bind:value={displaySquat} required />
+            </FormGroup>
+            <FormGroup>
+                <Label for="bench">Bench ({$weightUnit})</Label>
+                <Input type="number" id="bench" bind:value={displayBench} required />
+            </FormGroup>
+            <FormGroup>
+                <Label for="deadlift">Deadlift ({$weightUnit})</Label>
+                <Input type="number" id="deadlift" bind:value={displayDeadlift} required />
+            </FormGroup>
+            <FormGroup>
+                <Label for="bodyWeight">Body Weight ({$weightUnit})</Label>
+                <Input type="number" id="bodyWeight" bind:value={displayBodyWeight} required />
+            </FormGroup>
 				<FormGroup>
 					<Label for="age">Age</Label>
 					<Input type="number" id="age" bind:value={age} required />

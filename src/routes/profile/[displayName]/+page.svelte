@@ -6,6 +6,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { getUserLifts } from '../../../dbFunctions';
 	import { weightUnit } from '../../../stores/weightUnitStore';
+	import { convertWeight } from '../../../helpers';
 
 	let displayName: string;
 	$: displayName = $page.params.displayName;
@@ -23,13 +24,6 @@
 	let sort: keyof Lift = 'dotsScore';
 	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
 	let unsubscribeLifts: (() => void) | undefined;
-
-	const convertWeight = (weight: number, unit: 'lbs' | 'kg'): number => {
-		if (unit === 'kg') {
-			return Math.round((weight / 2.205) * 100) / 100;
-		}
-		return weight;
-	};
 
 	onMount(() => {
 		unsubscribeLifts = getUserLifts(displayName, (lifts) => {

@@ -8,6 +8,7 @@
 	import Select, { Option } from '@smui/select';
 	import { Label } from '@smui/common';
 	import { weightUnit } from '../stores/weightUnitStore';
+	import { convertWeight } from '../helpers';
 
 	// Exported prop
 	export let university: string | undefined;
@@ -122,13 +123,6 @@
 
 	// Cache for usernames
 	let userNameCache: { [key: string]: string } = {};
-
-	const convertWeight = (weight: number, unit: 'lbs' | 'kg'): number => {
-		if (unit === 'kg') {
-			return Math.round((weight / 2.205) * 100) / 100;
-		}
-		return weight;
-	};
 </script>
 
 <div class="leaderboard-container">

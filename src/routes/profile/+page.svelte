@@ -23,6 +23,7 @@
 	import UniversitySelector from '../../components/UniversitySelector.svelte';
 	import EditLiftForm from '../../components/EditLiftForm.svelte';
 	import {weightUnit} from '../../stores/weightUnitStore';
+	import { convertWeight } from '../../helpers';
 	const title = 'Collegiate Strength - User Profile';
 	let userLifts: Lift[] = [];
 	let sort: keyof Lift = 'dotsScore';
@@ -35,12 +36,6 @@
 	let updatedUserInfo = {
 		userName: '',
 		selectedUniversity: ''
-	};
-	const convertWeight = (weight: number, unit: 'lbs' | 'kg'): number => {
-		if (unit === 'kg') {
-			return Math.round((weight / 2.205) * 100) / 100;
-		}
-		return weight;
 	};
 	onMount(() => {
 		unsubscribeUser = user.subscribe((currentUser) => {
