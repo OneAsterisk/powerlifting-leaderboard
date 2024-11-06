@@ -22,7 +22,7 @@
 	import type { Lift, UserInfo } from '../../types';
 	import UniversitySelector from '../../components/UniversitySelector.svelte';
 	import EditLiftForm from '../../components/EditLiftForm.svelte';
-	import {weightUnit} from '../../stores/weightUnitStore';
+	import { weightUnit } from '../../stores/weightUnitStore';
 	import { convertWeight } from '../../helpers';
 	const title = 'Collegiate Strength - User Profile';
 	let userLifts: Lift[] = [];
@@ -230,7 +230,9 @@
 								{#each columns as column}
 									<Cell numeric={column.numeric}>
 										{#if column.key === 'squat' || column.key === 'bench' || column.key === 'deadlift' || column.key === 'total' || column.key === 'bodyWeight'}
-											{!lift[column.key] ? 'N/A' : convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
+											{!lift[column.key]
+												? 'N/A'
+												: convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
 										{:else}
 											{lift[column.key]}
 										{/if}
@@ -273,32 +275,33 @@
 		<Button on:click={login}>Sign In with Google</Button>
 	</div>
 {/if}
+
 <style>
-    h1 {
-        color: var(--dark-accent-blue);
-        text-align: center;
-        margin-bottom: 2rem;
-        font-size: 2rem;
-    }
+	h1 {
+		color: var(--dark-accent-blue);
+		text-align: center;
+		margin-bottom: 2rem;
+		font-size: 2rem;
+	}
 
-    h2 {
-        color: #fff;
-        margin-bottom: 1.5rem;
-        font-size: 1.5rem;
-    }
+	h2 {
+		color: #fff;
+		margin-bottom: 1.5rem;
+		font-size: 1.5rem;
+	}
 
-    .main-content {
-        width: 90%;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 1rem;
-    }
+	.main-content {
+		width: 90%;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 1rem;
+	}
 
-    .content-wrapper {
-        display: flex;
-        gap: 2rem;
-        margin-top: 2rem;
-    }
+	.content-wrapper {
+		display: flex;
+		gap: 2rem;
+		margin-top: 2rem;
+	}
 
 	.leaderboard-container {
 		width: 100%;
@@ -306,138 +309,138 @@
 		margin: 0 auto;
 	}
 
-    .settings-panel {
-        width: 300px;
-        background-color: #2a2a2e;
-        padding: 1.5rem;
-        border-radius: 8px;
-        height: fit-content;
-    }
+	.settings-panel {
+		width: 300px;
+		background-color: #2a2a2e;
+		padding: 1.5rem;
+		border-radius: 8px;
+		height: fit-content;
+	}
 
-    .settings-option {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-        padding: 0.5rem;
-        background-color: #333;
-        border-radius: 4px;
-    }
+	.settings-option {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+		padding: 0.5rem;
+		background-color: #333;
+		border-radius: 4px;
+	}
 
-    .settings-label {
-        font-weight: bold;
-        color: #888;
-        font-size: 0.9rem;
-    }
+	.settings-label {
+		font-weight: bold;
+		color: #888;
+		font-size: 0.9rem;
+	}
 
-    .settings-value {
-        color: #fff;
-        word-break: break-word;
-    }
+	.settings-value {
+		color: #fff;
+		word-break: break-word;
+	}
 
-    .settings-buttons {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1.5rem;
-    }
+	.settings-buttons {
+		display: flex;
+		gap: 1rem;
+		margin-top: 1.5rem;
+	}
 
-    .modal-buttons {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
+	.modal-buttons {
+		display: flex;
+		gap: 1rem;
+		margin-top: 1rem;
+	}
 
-    .login-container {
-        text-align: center;
-        margin-top: 2rem;
-    }
+	.login-container {
+		text-align: center;
+		margin-top: 2rem;
+	}
 
-    :global(.custom-label) {
-        font-weight: bold;
-        display: flex;
-        justify-content: center;
-        width: 7.5rem;
-        border-radius: 0.25rem 0 0 0.25rem;
-        padding: 0.375rem 0.75rem;
-    }
+	:global(.custom-label) {
+		font-weight: bold;
+		display: flex;
+		justify-content: center;
+		width: 7.5rem;
+		border-radius: 0.25rem 0 0 0.25rem;
+		padding: 0.375rem 0.75rem;
+	}
 
-    :global(.custom-input) {
-        border-top-right-radius: 5px;
-        border-bottom-right-radius: 5px;
-        text-overflow: ellipsis;
-    }
+	:global(.custom-input) {
+		border-top-right-radius: 5px;
+		border-bottom-right-radius: 5px;
+		text-overflow: ellipsis;
+	}
 
-    :global(.mdc-data-table) {
-        width: 100%;
-        border: 1px solid #5b5656;
-        border-radius: 4px;
-        background-color: #2a2a2e;
-    }
+	:global(.mdc-data-table) {
+		width: 100%;
+		border: 1px solid #5b5656;
+		border-radius: 4px;
+		background-color: #2a2a2e;
+	}
 
-    :global(.mdc-data-table__header-cell) {
-        font-weight: bold;
-        text-transform: uppercase;
-        background-color: #0761c7;
-        font-size: 1rem;
-        color: aliceblue;
-        padding: 0.75rem;
-    }
+	:global(.mdc-data-table__header-cell) {
+		font-weight: bold;
+		text-transform: uppercase;
+		background-color: #0761c7;
+		font-size: 1rem;
+		color: aliceblue;
+		padding: 0.75rem;
+	}
 
-    :global(.mdc-data-table__cell) {
-        color: #fff;
-        padding: 0.75rem;
-        border-bottom: 1px solid #444;
-    }
+	:global(.mdc-data-table__cell) {
+		color: #fff;
+		padding: 0.75rem;
+		border-bottom: 1px solid #444;
+	}
 
-    :global(.modal-content) {
-        background-color: #2a2a2e;
-        color: #fff;
-    }
+	:global(.modal-content) {
+		background-color: #2a2a2e;
+		color: #fff;
+	}
 
-    :global(.modal-header) {
-        border-bottom: 1px solid #444;
-    }
+	:global(.modal-header) {
+		border-bottom: 1px solid #444;
+	}
 
-    /* Responsive Styles */
-    @media (max-width: 1300px) {
-        .content-wrapper {
-            flex-direction: column;
-        }
+	/* Responsive Styles */
+	@media (max-width: 1300px) {
+		.content-wrapper {
+			flex-direction: column;
+		}
 
-        .settings-panel {
-            width: 50%;
+		.settings-panel {
+			width: 50%;
 			margin: 0 auto;
-            margin-top: 2rem;
-        }
+			margin-top: 2rem;
+		}
 
-        .settings-buttons {
-            flex-direction: row;
-            justify-content: space-between;
-        }
+		.settings-buttons {
+			flex-direction: row;
+			justify-content: space-between;
+		}
 
-        h1 {
-            font-size: 1.75rem;
-        }
-    }
+		h1 {
+			font-size: 1.75rem;
+		}
+	}
 
-    @media (max-width: 480px) {
-        .main-content {
-            width: 100%;
-            padding: 0 0.5rem;
-        }
+	@media (max-width: 480px) {
+		.main-content {
+			width: 100%;
+			padding: 0 0.5rem;
+		}
 
-        h1 {
-            font-size: 1.5rem;
-        }
+		h1 {
+			font-size: 1.5rem;
+		}
 
-        .settings-buttons {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
+		.settings-buttons {
+			flex-direction: column;
+			gap: 0.5rem;
+		}
 
-        :global(.custom-label) {
-            width: 6rem;
-            font-size: 0.9rem;
-        }
-    }
+		:global(.custom-label) {
+			width: 6rem;
+			font-size: 0.9rem;
+		}
+	}
 </style>
