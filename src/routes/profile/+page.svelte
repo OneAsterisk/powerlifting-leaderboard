@@ -21,6 +21,7 @@
 	import IconButton from '@smui/icon-button';
 	import type { Lift, UserInfo } from '../../types';
 	import UniversitySelector from '../../components/UniversitySelector.svelte';
+	import LiftGraph from '../../components/LiftGraph.svelte';
 	import EditLiftForm from '../../components/EditLiftForm.svelte';
 	import { weightUnit } from '../../stores/weightUnitStore';
 	import { convertWeight } from '../../helpers';
@@ -245,6 +246,9 @@
 						{/each}
 					</Body>
 				</DataTable>
+				<div>
+					<LiftGraph userId={$user.uid} />
+				</div>
 			</div>
 
 			<!-- Settings Panel -->
