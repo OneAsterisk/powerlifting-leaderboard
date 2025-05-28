@@ -30,12 +30,15 @@
 	onMount(() => {
 		unsubscribeLifts = getUserLifts(displayName, (lifts) => {
 			userLifts = lifts;
-			if (lifts.length > 0 && lifts[0].userId) {
-				userId = lifts[0].userId;
-			}
+			setUserIdFromLifts(lifts);
 		});
 	});
 
+	function setUserIdFromLifts(lifts: Lift[]) {
+		if (lifts.length > 0 && lifts[0].userId) {
+			userId = lifts[0].userId;
+		}
+	}
 	onDestroy(() => {
 		unsubscribeLifts && unsubscribeLifts();
 	});
