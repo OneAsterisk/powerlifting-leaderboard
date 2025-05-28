@@ -220,6 +220,23 @@ export const submitLift = async (
 					stats: newStats,
 					updatedAt: serverTimestamp()
 				});
+			} else {
+				// Create user document if it doesn't exist
+				await setDoc(userDocRef, {
+					displayName: user.displayName || '',
+					email: user.email || '',
+					gender: gender,
+					university: selectedUniversity,
+					userName: user.displayName || '',
+					stats: {
+						bestDots: dotsScore,
+						bestTotal: total,
+						lastLiftDate: serverTimestamp(),
+						totalLifts: 1
+					},
+					createdAt: serverTimestamp(),
+					updatedAt: serverTimestamp()
+				});
 			}
 		} catch (error) {
 			console.error('Error submitting lift:', error);
@@ -297,25 +314,24 @@ export const getUniversityLifts = (
 			const userId = userDoc.id;
 			const userData = userDoc.data() as UserData;
 
-			// Query user's lifts subcollection, filtered by university and ordered by DOTS score descending
+			// Query user's lifts subcollection (get all lifts, then filter in memory)
 			const liftsRef = collection(db, 'users', userId, 'lifts');
-			const liftsQuery = query(
-				liftsRef,
-				where('selectedUniversity', '==', university),
-				orderBy('dotsScore', 'desc'),
-				limit(1)
-			);
+			const liftsQuery = query(liftsRef, orderBy('dotsScore', 'desc'));
 
 			try {
 				const liftsSnapshot = await getDocs(liftsQuery);
 
-				if (!liftsSnapshot.empty) {
-					const bestLiftDoc = liftsSnapshot.docs[0];
-					const bestLift = bestLiftDoc.data() as Lift;
+				// Filter lifts by university and get the best one
+				const universityLifts = liftsSnapshot.docs
+					.map((doc) => ({ ...(doc.data() as Lift), id: doc.id }))
+					.filter((lift) => lift.selectedUniversity === university);
+
+				if (universityLifts.length > 0) {
+					// Get the best lift (first one since already ordered by dotsScore desc)
+					const bestLift = universityLifts[0];
 
 					return {
 						...bestLift,
-						id: bestLiftDoc.id,
 						userId,
 						displayName: userData.displayName || bestLift.displayName,
 						formattedDate: formatDate(bestLift.timestamp),
@@ -415,11 +431,36 @@ export const getUserLiftsPersonal = (
 	const unsubscribe = onSnapshot(
 		q,
 		(querySnapshot) => {
-			const lifts: Lift[] = querySnapshot.docs.map((doc) => ({
-				...(doc.data() as Lift),
-				id: doc.id,
-				formattedDate: formatDate(doc.data().timestamp)
-			}));
+			const lifts: Lift[] = querySnapshot.docs.map((doc) => {
+				const data = doc.data();
+
+				// Normalize the data structure to ensure consistency
+				const normalizedLift = {
+					...(data as Lift),
+					id: doc.id,
+					formattedDate: formatDate(data.timestamp),
+					// Ensure consistent field naming
+					selectedUniversity: data.selectedUniversity || data.university || 'Not Specified',
+					// Ensure all required numeric fields exist
+					squat: data.squat || 0,
+					bench: data.bench || 0,
+					deadlift: data.deadlift || 0,
+					total: data.total || (data.squat || 0) + (data.bench || 0) + (data.deadlift || 0),
+					bodyWeight: data.bodyWeight || 0,
+					dotsScore: data.dotsScore || 0,
+					age: data.age || 0,
+					// Ensure other required fields
+					displayName: data.displayName || '',
+					gender: data.gender || 'Male',
+					liftType: data.liftType || 'Gym Lift',
+					liftUID: data.liftUID || doc.id,
+					userId: data.userId || userId,
+					timestamp: data.timestamp
+				};
+
+				return normalizedLift;
+			});
+
 			callback(lifts);
 		},
 		(error) => {

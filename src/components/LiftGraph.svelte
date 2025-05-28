@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, afterUpdate } from 'svelte';
 	import { Chart, registerables } from 'chart.js/auto';
 	import { weightUnit } from '../stores/weightUnitStore';
 	import { getUserLiftsPersonal } from '../dbFunctions';
@@ -14,12 +14,18 @@
 	let unsubscribe: (() => void) | undefined;
 	let loading = true;
 	let error = false;
+	let needsChartUpdate = false;
 
 	// Chart configuration options
 	let chartType: 'line' | 'bar' = 'line';
-	let showTotal = true;
 	let showDots = false;
 	let timeRange: 'all' | '6months' | '1year' = 'all';
+
+	// Individual lift visibility controls
+	let showSquat = true;
+	let showBench = true;
+	let showDeadlift = true;
+	let showTotalLift = true;
 
 	// Color scheme matching your dark theme
 	const colors = {
@@ -55,8 +61,16 @@
 			);
 			loading = false;
 			error = lifts.length === 0;
-			updateChart();
+			needsChartUpdate = true;
 		});
+	});
+
+	afterUpdate(() => {
+		if (needsChartUpdate && chartCanvas && lifts.length > 0) {
+			console.log('LiftGraph: Creating chart with', lifts.length, 'lifts');
+			needsChartUpdate = false;
+			updateChart();
+		}
 	});
 
 	onDestroy(() => {
@@ -83,7 +97,10 @@
 	}
 
 	function updateChart() {
-		if (!chartCanvas || lifts.length === 0) return;
+		if (!chartCanvas || lifts.length === 0) {
+			console.log('LiftGraph: Cannot create chart - canvas or lifts missing');
+			return;
+		}
 
 		if (chart) chart.destroy();
 
@@ -92,7 +109,7 @@
 		const datasets = [];
 
 		// Individual lifts
-		if (showTotal) {
+		if (showSquat) {
 			datasets.push({
 				label: 'Squat',
 				data: filteredLifts.map((lift) => convertWeight(lift.squat, $weightUnit)),
@@ -107,7 +124,9 @@
 				pointBorderColor: '#ffffff',
 				pointBorderWidth: 2
 			});
+		}
 
+		if (showBench) {
 			datasets.push({
 				label: 'Bench Press',
 				data: filteredLifts.map((lift) => convertWeight(lift.bench, $weightUnit)),
@@ -122,7 +141,9 @@
 				pointBorderColor: '#ffffff',
 				pointBorderWidth: 2
 			});
+		}
 
+		if (showDeadlift) {
 			datasets.push({
 				label: 'Deadlift',
 				data: filteredLifts.map((lift) => convertWeight(lift.deadlift, $weightUnit)),
@@ -137,7 +158,9 @@
 				pointBorderColor: '#ffffff',
 				pointBorderWidth: 2
 			});
+		}
 
+		if (showTotalLift) {
 			datasets.push({
 				label: 'Total',
 				data: filteredLifts.map((lift) => convertWeight(lift.total, $weightUnit)),
@@ -173,6 +196,8 @@
 				yAxisID: 'y1'
 			});
 		}
+
+		console.log('LiftGraph: Chart created successfully with', datasets.length, 'datasets');
 
 		chart = new Chart(chartCanvas, {
 			type: chartType,
@@ -311,23 +336,42 @@
 
 	// Reactive updates
 	$: if (chart && lifts.length > 0) {
-		updateChart();
+		needsChartUpdate = true;
 	}
 
 	function toggleChartType() {
 		chartType = chartType === 'line' ? 'bar' : 'line';
-	}
-
-	function toggleTotal() {
-		showTotal = !showTotal;
+		needsChartUpdate = true;
 	}
 
 	function toggleDots() {
 		showDots = !showDots;
+		needsChartUpdate = true;
+	}
+
+	function toggleSquat() {
+		showSquat = !showSquat;
+		needsChartUpdate = true;
+	}
+
+	function toggleBench() {
+		showBench = !showBench;
+		needsChartUpdate = true;
+	}
+
+	function toggleDeadlift() {
+		showDeadlift = !showDeadlift;
+		needsChartUpdate = true;
+	}
+
+	function toggleTotalLift() {
+		showTotalLift = !showTotalLift;
+		needsChartUpdate = true;
 	}
 
 	function setTimeRange(range: 'all' | '6months' | '1year') {
 		timeRange = range;
+		needsChartUpdate = true;
 	}
 </script>
 
@@ -367,13 +411,56 @@
 				>
 					{chartType === 'line' ? 'Line' : 'Bar'}
 				</Button>
-				<Button color={showTotal ? 'primary' : 'secondary'} size="sm" on:click={toggleTotal}>
-					Lifts
-				</Button>
 				<Button color={showDots ? 'primary' : 'secondary'} size="sm" on:click={toggleDots}>
 					DOTS
 				</Button>
 			</ButtonGroup>
+
+			<div class="lift-controls">
+				<span class="control-label">Show Lifts:</span>
+				<ButtonGroup size="sm">
+					<Button
+						color={showSquat ? 'danger' : 'secondary'}
+						size="sm"
+						on:click={toggleSquat}
+						style="border-color: {colors.squat.border}; {showSquat
+							? `background-color: ${colors.squat.border}; color: white;`
+							: ''}"
+					>
+						Squat
+					</Button>
+					<Button
+						color={showBench ? 'primary' : 'secondary'}
+						size="sm"
+						on:click={toggleBench}
+						style="border-color: {colors.bench.border}; {showBench
+							? `background-color: ${colors.bench.border}; color: white;`
+							: ''}"
+					>
+						Bench
+					</Button>
+					<Button
+						color={showDeadlift ? 'success' : 'secondary'}
+						size="sm"
+						on:click={toggleDeadlift}
+						style="border-color: {colors.deadlift.border}; {showDeadlift
+							? `background-color: ${colors.deadlift.border}; color: white;`
+							: ''}"
+					>
+						Deadlift
+					</Button>
+					<Button
+						color={showTotalLift ? 'warning' : 'secondary'}
+						size="sm"
+						on:click={toggleTotalLift}
+						style="border-color: {colors.total.border}; {showTotalLift
+							? `background-color: ${colors.total.border}; color: black;`
+							: ''}"
+					>
+						Total
+					</Button>
+				</ButtonGroup>
+			</div>
 		</div>
 	</div>
 
@@ -424,6 +511,21 @@
 		display: flex;
 		gap: 1rem;
 		flex-wrap: wrap;
+		align-items: center;
+	}
+
+	.lift-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.control-label {
+		color: #b3b3b3;
+		font-size: 0.9rem;
+		font-weight: 500;
+		white-space: nowrap;
 	}
 
 	.chart-wrapper {
@@ -485,6 +587,17 @@
 
 		.graph-controls {
 			justify-content: center;
+			flex-direction: column;
+			gap: 0.75rem;
+		}
+
+		.lift-controls {
+			justify-content: center;
+		}
+
+		.control-label {
+			text-align: center;
+			width: 100%;
 		}
 
 		.chart-wrapper {
@@ -500,6 +613,10 @@
 	@media (max-width: 480px) {
 		.graph-controls {
 			flex-direction: column;
+		}
+
+		.lift-controls .btn-group {
+			flex-wrap: wrap;
 		}
 
 		.chart-wrapper {
