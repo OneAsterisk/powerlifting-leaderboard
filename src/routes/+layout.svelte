@@ -17,8 +17,6 @@
 </Theme>
 
 <style lang="scss" global>
-	@import '../lib/styles/global.scss';
-
 	main {
 		padding: 20px;
 		margin-top: 20px; /* Adjust based on your navbar height */

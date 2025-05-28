@@ -6,7 +6,24 @@ const config = {
 	preprocess: vitePreprocess({
 		scss: {
 			prependData: '@use "sass:math";',
-			quietDeps: true // Suppresses warnings from dependencies
+			quietDeps: true, // Suppresses warnings from dependencies
+			silenceDeprecations: ['legacy-js-api', 'color-functions'], // Suppress specific deprecation warnings
+			api: 'modern-compiler', // Use modern Sass API
+			logger: {
+				warn: function (message) {
+					// Suppress specific Bootstrap-related warnings
+					if (
+						message.includes('Unused CSS selector') ||
+						message.includes('red() is deprecated') ||
+						message.includes('green() is deprecated') ||
+						message.includes('blue() is deprecated') ||
+						message.includes('The legacy JS API is deprecated')
+					) {
+						return;
+					}
+					console.warn(message);
+				}
+			}
 		}
 	}),
 
