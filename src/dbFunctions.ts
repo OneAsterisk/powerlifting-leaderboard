@@ -300,6 +300,56 @@ export const getAllLifts = (callback: (lifts: Lift[]) => void): (() => void) => 
 	return unsubscribe;
 };
 
+// Helper function to normalize university names for matching
+function normalizeUniversityName(universityName: string): string {
+	if (!universityName) return '';
+
+	return (
+		universityName
+			.toLowerCase()
+			.trim()
+			// Remove common suffixes and campus designations
+			.replace(
+				/\s*-\s*(main\s+campus|ann\s+arbor|college\s+park|university\s+park|campus|main).*$/i,
+				''
+			)
+			// Remove "the" at the beginning
+			.replace(/^the\s+/i, '')
+			// Remove common university type indicators at the end
+			.replace(/\s+(university|college|institute|school)(\s+of.*)?$/i, '')
+			// Normalize spacing
+			.replace(/\s+/g, ' ')
+			.trim()
+	);
+}
+
+// Helper function to check if two university names should be considered the same
+function universitiesMatch(university1: string, university2: string): boolean {
+	if (!university1 || !university2) return false;
+
+	// Exact match first
+	if (university1 === university2) return true;
+
+	// Normalize both names
+	const normalized1 = normalizeUniversityName(university1);
+	const normalized2 = normalizeUniversityName(university2);
+
+	// Check if normalized names match
+	if (normalized1 === normalized2) return true;
+
+	// Check if one is a substring of the other (for cases like "Michigan" vs "University of Michigan")
+	if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
+		// Additional check to avoid false positives with very short names
+		const minLength = Math.min(normalized1.length, normalized2.length);
+		if (minLength >= 5) {
+			// Only match if the shorter name is at least 5 characters
+			return true;
+		}
+	}
+
+	return false;
+}
+
 // Function to get lifts filtered by university (for university leaderboards)
 export const getUniversityLifts = (
 	university: string,
@@ -321,10 +371,10 @@ export const getUniversityLifts = (
 			try {
 				const liftsSnapshot = await getDocs(liftsQuery);
 
-				// Filter lifts by university and get the best one
+				// Filter lifts by university using intelligent matching and get the best one
 				const universityLifts = liftsSnapshot.docs
 					.map((doc) => ({ ...(doc.data() as Lift), id: doc.id }))
-					.filter((lift) => lift.selectedUniversity === university);
+					.filter((lift) => universitiesMatch(lift.selectedUniversity, university));
 
 				if (universityLifts.length > 0) {
 					// Get the best lift (first one since already ordered by dotsScore desc)

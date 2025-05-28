@@ -3,6 +3,7 @@
 	import { ButtonGroup, Button, Tooltip } from '@sveltestrap/sveltestrap';
 	import { searchPeople } from '../dbFunctions';
 	import { onMount } from 'svelte';
+	import { getUniversityUrlSlug } from '../helpers';
 
 	let searchQuery = '';
 	let searchResults: any[] = [];
@@ -62,7 +63,7 @@
 		selectedIndex = -1;
 
 		if (searchType === 'universities') {
-			goto(`/uni/${encodeURIComponent(result)}`);
+			goto(`/uni/${encodeURIComponent(getUniversityUrlSlug(result))}`);
 		} else {
 			goto(`/profile/${encodeURIComponent(result.name)}`);
 		}
@@ -92,7 +93,7 @@
 				event.preventDefault();
 				if (selectedIndex >= 0) {
 					const result = searchResults[selectedIndex];
-					selectResult(searchType === 'universities' ? result.split(' -')[0] : result);
+					selectResult(result);
 				}
 				break;
 			case 'Escape':
@@ -157,10 +158,7 @@
 					type="button"
 					class="result-item"
 					class:selected={i === selectedIndex}
-					on:click={() =>
-						searchType === 'universities'
-							? selectResult(result.split(' -')[0])
-							: selectResult(result)}
+					on:click={() => selectResult(result)}
 					on:mouseenter={() => (selectedIndex = i)}
 				>
 					{searchType === 'universities' ? result : result.name}

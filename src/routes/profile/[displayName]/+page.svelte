@@ -6,7 +6,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { getUserLifts } from '../../../dbFunctions';
 	import { weightUnit } from '../../../stores/weightUnitStore';
-	import { convertWeight } from '../../../helpers';
+	import { convertWeight, getUniversityUrlSlug, getUniversityDisplayName } from '../../../helpers';
 	import LiftGraph from '../../../components/LiftGraph.svelte';
 
 	let displayName: string;
@@ -105,8 +105,8 @@
 									? 'N/A'
 									: convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
 							{:else if column.key === 'selectedUniversity'}
-								<a href={`/uni/${lift[column.key].split(' -')[0]}`}
-									>{lift[column.key].split(' -')[0]}</a
+								<a href={`/uni/${getUniversityUrlSlug(lift[column.key])}`}
+									>{getUniversityDisplayName(lift[column.key])}</a
 								>
 							{:else}
 								{lift[column.key]}

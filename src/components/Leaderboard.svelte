@@ -8,7 +8,7 @@
 	import Select, { Option } from '@smui/select';
 	import { Label } from '@smui/common';
 	import { weightUnit } from '../stores/weightUnitStore';
-	import { convertWeight } from '../helpers';
+	import { convertWeight, getUniversityUrlSlug, getUniversityDisplayName } from '../helpers';
 
 	// Exported prop
 	export let university: string | undefined;
@@ -197,8 +197,8 @@
 										{/if}
 									{/await}
 								{:else if column.key === 'selectedUniversity'}
-									<a href={`/uni/${lift[column.key].split(' -')[0]}`}
-										>{lift[column.key].split(' -')[0]}</a
+									<a href={`/uni/${getUniversityUrlSlug(lift[column.key])}`}
+										>{getUniversityDisplayName(lift[column.key])}</a
 									>
 								{:else if column.key === 'bodyWeight' || column.key === 'total' || column.key === 'squat' || column.key === 'bench' || column.key === 'deadlift'}
 									{!lift[column.key]
