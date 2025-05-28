@@ -1,6 +1,12 @@
 import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
-export async function GET({ url }) {
+interface University {
+	name: string;
+	[key: string]: unknown;
+}
+
+export const GET: RequestHandler = async ({ url }) => {
 	const country = url.searchParams.get('country') || 'United States';
 	const apiUrl = `http://universities.hipolabs.com/search?country=${encodeURIComponent(country)}`;
 
@@ -14,11 +20,11 @@ export async function GET({ url }) {
 			return json({ error: 'Failed to fetch data from external API' }, { status: response.status });
 		}
 
-		const data = await response.json();
-		const universityNames = data.map((uni) => uni.name).sort();
+		const data: University[] = await response.json();
+		const universityNames = data.map((uni: University) => uni.name).sort();
 		return json(universityNames);
 	} catch (error) {
 		console.error('Error fetching data:', error);
 		return json({ error: 'An error occurred while fetching data' }, { status: 500 });
 	}
-}
+};

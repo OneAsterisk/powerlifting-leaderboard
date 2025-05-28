@@ -45,7 +45,9 @@
 			if (searchType === 'universities') {
 				const response = await fetch(`/api/universities?country=United States`);
 				const data = await response.json();
-				searchResults = data.filter((uni) => uni.toLowerCase().includes(searchQuery.toLowerCase()));
+				searchResults = data.filter((uni: string) =>
+					uni.toLowerCase().includes(searchQuery.toLowerCase())
+				);
 			} else {
 				searchResults = await searchPeople(searchQuery);
 			}
@@ -54,7 +56,7 @@
 		}, 300);
 	}
 
-	function selectResult(result) {
+	function selectResult(result: any) {
 		showResults = false;
 		searchQuery = '';
 		selectedIndex = -1;
