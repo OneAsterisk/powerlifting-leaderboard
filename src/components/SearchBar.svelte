@@ -3,6 +3,7 @@
 	import { ButtonGroup, Button, Tooltip } from '@sveltestrap/sveltestrap';
 	import { searchPeople } from '../dbFunctions';
 	import { onMount } from 'svelte';
+	import { getUniversityUrlSlug } from '../helpers';
 
 	let searchQuery = '';
 	let searchResults: any[] = [];
@@ -45,7 +46,9 @@
 			if (searchType === 'universities') {
 				const response = await fetch(`/api/universities?country=United States`);
 				const data = await response.json();
-				searchResults = data.filter((uni) => uni.toLowerCase().includes(searchQuery.toLowerCase()));
+				searchResults = data.filter((uni: string) =>
+					uni.toLowerCase().includes(searchQuery.toLowerCase())
+				);
 			} else {
 				searchResults = await searchPeople(searchQuery);
 			}
@@ -54,13 +57,13 @@
 		}, 300);
 	}
 
-	function selectResult(result) {
+	function selectResult(result: any) {
 		showResults = false;
 		searchQuery = '';
 		selectedIndex = -1;
 
 		if (searchType === 'universities') {
-			goto(`/uni/${encodeURIComponent(result)}`);
+			goto(`/uni/${encodeURIComponent(getUniversityUrlSlug(result))}`);
 		} else {
 			goto(`/profile/${encodeURIComponent(result.name)}`);
 		}
@@ -90,7 +93,7 @@
 				event.preventDefault();
 				if (selectedIndex >= 0) {
 					const result = searchResults[selectedIndex];
-					selectResult(searchType === 'universities' ? result.split(' -')[0] : result);
+					selectResult(result);
 				}
 				break;
 			case 'Escape':
@@ -155,10 +158,7 @@
 					type="button"
 					class="result-item"
 					class:selected={i === selectedIndex}
-					on:click={() =>
-						searchType === 'universities'
-							? selectResult(result.split(' -')[0])
-							: selectResult(result)}
+					on:click={() => selectResult(result)}
 					on:mouseenter={() => (selectedIndex = i)}
 				>
 					{searchType === 'universities' ? result : result.name}

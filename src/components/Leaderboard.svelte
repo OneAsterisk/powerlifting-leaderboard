@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { getAllLifts, getUserName } from '../dbFunctions';
+	import { getAllLifts, getUniversityLifts, getUserName } from '../dbFunctions';
 	import DataTable, { Head, Body, Row, Cell, Pagination } from '@smui/data-table';
 	import IconButton from '@smui/icon-button';
 	import type { Lift } from '../types';
@@ -8,13 +8,12 @@
 	import Select, { Option } from '@smui/select';
 	import { Label } from '@smui/common';
 	import { weightUnit } from '../stores/weightUnitStore';
-	import { convertWeight } from '../helpers';
+	import { convertWeight, getUniversityUrlSlug, getUniversityDisplayName } from '../helpers';
 
 	// Exported prop
 	export let university: string | undefined;
 
 	// Variables
-	let allLifts: Lift[] = [];
 	let topLifts: Lift[] = [];
 	let unsubscribe: () => void;
 	let sort: keyof Lift = 'rank';
@@ -38,24 +37,32 @@
 	}
 	let screenWidth: number;
 	let screenSize: string;
-	// Fetch all lifts on component mount
+
+	// Fetch lifts based on university filter
 	onMount(() => {
 		screenWidth = window.innerWidth;
-		if(screenWidth > 1500){
+		if (screenWidth > 1500) {
 			screenSize = 'xl';
-		}
-		else if(screenWidth > 1280){
+		} else if (screenWidth > 1280) {
 			screenSize = 'lg';
-		} else if(screenWidth >980){
+		} else if (screenWidth > 980) {
 			screenSize = 'md';
-		} else if(screenWidth > 600){
+		} else if (screenWidth > 600) {
 			screenSize = 'sm';
 		} else {
 			screenSize = 'xs';
 		}
-		unsubscribe = getAllLifts((updatedLifts) => {
-			allLifts = updatedLifts;
-		});
+
+		// Use appropriate function based on university filter
+		if (university) {
+			unsubscribe = getUniversityLifts(university, (updatedLifts) => {
+				topLifts = updatedLifts;
+			});
+		} else {
+			unsubscribe = getAllLifts((updatedLifts) => {
+				topLifts = updatedLifts;
+			});
+		}
 	});
 
 	// Clean up subscription on component destroy
@@ -65,19 +72,23 @@
 		}
 	});
 
-	// Reactive statement to filter and sort lifts whenever university or allLifts changes
-	$: if (allLifts.length > 0) {
-		if (university) {
-			topLifts = allLifts.filter((lift) => lift.selectedUniversity.split(' -')[0] === university);
-		} else {
-			topLifts = allLifts;
+	// Reactive statement to update subscription when university changes
+	$: if (university !== undefined) {
+		// Clean up existing subscription
+		if (unsubscribe) {
+			unsubscribe();
 		}
-		// Update ranks after filtering
-		topLifts = topLifts.map((lift, index) => ({
-			...lift,
-			rank: index + 1
-		}));
-		handleSort();
+
+		// Create new subscription based on university filter
+		if (university) {
+			unsubscribe = getUniversityLifts(university, (updatedLifts) => {
+				topLifts = updatedLifts;
+			});
+		} else {
+			unsubscribe = getAllLifts((updatedLifts) => {
+				topLifts = updatedLifts;
+			});
+		}
 	}
 
 	// Function to load usernames
@@ -186,8 +197,8 @@
 										{/if}
 									{/await}
 								{:else if column.key === 'selectedUniversity'}
-									<a href={`/uni/${lift[column.key].split(' -')[0]}`}
-										>{lift[column.key].split(' -')[0]}</a
+									<a href={`/uni/${getUniversityUrlSlug(lift[column.key])}`}
+										>{getUniversityDisplayName(lift[column.key])}</a
 									>
 								{:else if column.key === 'bodyWeight' || column.key === 'total' || column.key === 'squat' || column.key === 'bench' || column.key === 'deadlift'}
 									{!lift[column.key]
@@ -255,7 +266,7 @@
 	a {
 		color: aliceblue;
 	}
-	
+
 	.leaderboard-container {
 		width: 100%;
 		max-width: 100%;

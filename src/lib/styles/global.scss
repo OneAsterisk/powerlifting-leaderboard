@@ -1,6 +1,8 @@
 // First, import Bootstrap functions and variables
 @import 'bootstrap/scss/functions';
 @import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/variables-dark';
+@import 'bootstrap/scss/maps';
 
 /* Dark Theme Color Palette */
 $dark-bg-primary: #121212;
@@ -31,8 +33,23 @@ $secondary: $dark-bg-secondary;
 
 @import '../../theme/smui-theme';
 
-// Then, import the rest of Bootstrap
-@import 'bootstrap/scss/bootstrap';
+// Import only the Bootstrap components that are actually used
+@import 'bootstrap/scss/mixins';
+@import 'bootstrap/scss/utilities';
+@import 'bootstrap/scss/root';
+@import 'bootstrap/scss/reboot';
+@import 'bootstrap/scss/type';
+@import 'bootstrap/scss/containers';
+@import 'bootstrap/scss/grid';
+@import 'bootstrap/scss/tables';
+@import 'bootstrap/scss/forms';
+@import 'bootstrap/scss/buttons';
+@import 'bootstrap/scss/button-group';
+@import 'bootstrap/scss/nav';
+@import 'bootstrap/scss/navbar';
+@import 'bootstrap/scss/modal';
+@import 'bootstrap/scss/tooltip';
+@import 'bootstrap/scss/helpers';
 
 // Custom styles
 body {

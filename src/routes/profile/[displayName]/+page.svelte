@@ -6,7 +6,8 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { getUserLifts } from '../../../dbFunctions';
 	import { weightUnit } from '../../../stores/weightUnitStore';
-	import { convertWeight } from '../../../helpers';
+	import { convertWeight, getUniversityUrlSlug, getUniversityDisplayName } from '../../../helpers';
+	import LiftGraph from '../../../components/LiftGraph.svelte';
 
 	let displayName: string;
 	$: displayName = $page.params.displayName;
@@ -21,6 +22,7 @@
 	];
 
 	let userLifts: Lift[] = [];
+	let userId: string | null = null;
 	let sort: keyof Lift = 'dotsScore';
 	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
 	let unsubscribeLifts: (() => void) | undefined;
@@ -28,9 +30,15 @@
 	onMount(() => {
 		unsubscribeLifts = getUserLifts(displayName, (lifts) => {
 			userLifts = lifts;
+			setUserIdFromLifts(lifts);
 		});
 	});
 
+	function setUserIdFromLifts(lifts: Lift[]) {
+		if (lifts.length > 0 && lifts[0].userId) {
+			userId = lifts[0].userId;
+		}
+	}
 	onDestroy(() => {
 		unsubscribeLifts && unsubscribeLifts();
 	});
@@ -54,6 +62,9 @@
 		}
 		unsubscribeLifts = getUserLifts(displayName, (lifts) => {
 			userLifts = lifts;
+			if (lifts.length > 0 && lifts[0].userId) {
+				userId = lifts[0].userId;
+			}
 		});
 	}
 </script>
@@ -97,8 +108,8 @@
 									? 'N/A'
 									: convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
 							{:else if column.key === 'selectedUniversity'}
-								<a href={`/uni/${lift[column.key].split(' -')[0]}`}
-									>{lift[column.key].split(' -')[0]}</a
+								<a href={`/uni/${getUniversityUrlSlug(lift[column.key])}`}
+									>{getUniversityDisplayName(lift[column.key])}</a
 								>
 							{:else}
 								{lift[column.key]}
@@ -109,6 +120,12 @@
 			{/each}
 		</Body>
 	</DataTable>
+
+	{#if userId}
+		<div class="graph-section">
+			<LiftGraph {userId} />
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -120,6 +137,10 @@
 		flex: 3;
 		width: 100%;
 		margin: 20px auto;
+	}
+
+	.graph-section {
+		margin-top: 2rem;
 	}
 
 	:global(.mdc-data-table) {
