@@ -53,6 +53,7 @@
 		"@sveltestrap/sveltestrap": "^6.2.7",
 		"bootstrap": "^5.3.5",
 		"chart.js": "^4.4.5",
+		"dotenv": "^16.5.0",
 		"firebase": "^10.13.2",
 		"firebase-admin": "^12.6.0",
 		"sass": "^1.63.6",
