@@ -7,6 +7,7 @@
 	import { getUserLifts } from '../../../dbFunctions';
 	import { weightUnit } from '../../../stores/weightUnitStore';
 	import { convertWeight } from '../../../helpers';
+	import LiftGraph from '../../../components/LiftGraph.svelte';
 
 	let displayName: string;
 	$: displayName = $page.params.displayName;
@@ -21,6 +22,7 @@
 	];
 
 	let userLifts: Lift[] = [];
+	let userId: string | null = null;
 	let sort: keyof Lift = 'dotsScore';
 	let sortDirection: Lowercase<keyof typeof SortValue> = 'ascending';
 	let unsubscribeLifts: (() => void) | undefined;
@@ -28,6 +30,9 @@
 	onMount(() => {
 		unsubscribeLifts = getUserLifts(displayName, (lifts) => {
 			userLifts = lifts;
+			if (lifts.length > 0 && lifts[0].userId) {
+				userId = lifts[0].userId;
+			}
 		});
 	});
 
@@ -54,6 +59,9 @@
 		}
 		unsubscribeLifts = getUserLifts(displayName, (lifts) => {
 			userLifts = lifts;
+			if (lifts.length > 0 && lifts[0].userId) {
+				userId = lifts[0].userId;
+			}
 		});
 	}
 </script>
@@ -109,6 +117,12 @@
 			{/each}
 		</Body>
 	</DataTable>
+
+	{#if userId}
+		<div class="graph-section">
+			<LiftGraph {userId} />
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -120,6 +134,10 @@
 		flex: 3;
 		width: 100%;
 		margin: 20px auto;
+	}
+
+	.graph-section {
+		margin-top: 2rem;
 	}
 
 	:global(.mdc-data-table) {
