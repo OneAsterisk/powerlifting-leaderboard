@@ -359,7 +359,7 @@
 		background-color: #0761c7;
 		color: white;
 		border: none;
-		border-radius: 0;
+		border-radius: 6px 0 0 6px;
 		font-size: 0.9rem;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
@@ -367,7 +367,7 @@
 
 	:global(.form-input) {
 		border: none;
-		border-radius: 0;
+		border-radius: 0 6px 6px 0;
 		background-color: #2a2a2a;
 		color: white;
 		font-size: 1rem;
@@ -410,12 +410,14 @@
 	.radio-options {
 		display: flex;
 		gap: 1.5rem;
-		justify-content: center;
+		justify-content: flex-start;
+		align-items: center;
 	}
 
 	.radio-option {
 		display: flex;
 		align-items: center;
+		gap: 0.5rem;
 	}
 
 	:global(.radio-input) {
