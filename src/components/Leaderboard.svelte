@@ -162,11 +162,14 @@
 								: column.key === 'selectedUniversity'
 									? 'university-cell'
 									: ''}
-							class="header-cell {column.key === 'displayName'
+							class="header-cell {column.key === 'displayName' ||
+							column.key === 'rank' ||
+							column.key === 'dotsScore' ||
+							column.key === 'total'
 								? 'priority-high'
 								: column.key === 'selectedUniversity'
 									? 'priority-low'
-									: column.key === 'dotsScore' || column.key === 'total'
+									: column.key === 'bodyWeight' || column.key === 'age' || column.key === 'gender'
 										? 'priority-medium'
 										: 'priority-low'}"
 						>
@@ -195,11 +198,14 @@
 							<Cell
 								numeric={column.numeric}
 								id={column.key === 'displayName' ? lift[column.key] : ''}
-								class="data-cell {column.key === 'displayName'
+								class="data-cell {column.key === 'displayName' ||
+								column.key === 'rank' ||
+								column.key === 'dotsScore' ||
+								column.key === 'total'
 									? 'priority-high'
 									: column.key === 'selectedUniversity'
 										? 'priority-low'
-										: column.key === 'dotsScore' || column.key === 'total'
+										: column.key === 'bodyWeight' || column.key === 'age' || column.key === 'gender'
 											? 'priority-medium'
 											: 'priority-low'}"
 							>
