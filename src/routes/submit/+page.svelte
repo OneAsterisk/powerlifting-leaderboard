@@ -321,6 +321,10 @@
 		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
+	.form-section:not(:last-child) {
+		margin-bottom: 2.5rem;
+	}
+
 	.section-title {
 		color: #4fc3f7;
 		font-size: 1.2rem;
@@ -462,6 +466,10 @@
 			margin-bottom: 1.5rem;
 		}
 
+		.form-section:not(:last-child) {
+			margin-bottom: 2rem;
+		}
+
 		.section-title {
 			font-size: 1.1rem;
 			margin-bottom: 1.25rem;
@@ -494,6 +502,10 @@
 			padding: 1rem;
 			margin-bottom: 1.25rem;
 			border-radius: 8px;
+		}
+
+		.form-section:not(:last-child) {
+			margin-bottom: 1.75rem;
 		}
 
 		.section-title {
