@@ -174,6 +174,7 @@
 		width: 300px;
 		display: flex;
 		align-items: center;
+		gap: 0.5rem;
 	}
 
 	input {
@@ -222,5 +223,31 @@
 	.result-item:focus {
 		outline: none;
 		background: #555;
+	}
+
+	/* Mobile responsive layout */
+	@media (max-width: 991px) {
+		.search-container-nav {
+			flex-direction: column;
+			align-items: stretch;
+			width: 100%;
+			gap: 0.75rem;
+		}
+
+		input {
+			width: 100%;
+		}
+
+		.search-results {
+			width: 100%;
+			right: auto;
+			left: 0;
+		}
+	}
+
+	@media (max-width: 576px) {
+		.search-container-nav {
+			gap: 0.5rem;
+		}
 	}
 </style>
