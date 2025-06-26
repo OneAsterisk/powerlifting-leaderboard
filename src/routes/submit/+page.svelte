@@ -27,7 +27,7 @@
 	let deadlift: string = '';
 	let bodyWeight: string = '';
 	let age: number;
-	const title = 'Collegiate Strength - Submit Lift';
+	const title = 'Submit Your Powerlifting Lifts - Collegiate Strength';
 	let hasInitialized = false;
 	let newUUID = '';
 	let liftType: string;
@@ -98,6 +98,29 @@
 
 <svelte:head>
 	<title>{title}</title>
+	<meta
+		name="description"
+		content="Submit your powerlifting records to the collegiate strength leaderboard. Track your squat, bench press, and deadlift PRs. Join university powerlifters competing nationwide and improve your DOTS score ranking."
+	/>
+	<meta
+		name="keywords"
+		content="submit powerlifting lifts, powerlifting record submission, collegiate powerlifting tracker, university strength records, squat bench deadlift submission, DOTS score tracker, student athlete powerlifting, college powerlifting records, campus recreation lifting, powerlifting competition entry, strength sports submission, university gym records, collegiate strength tracking, powerlifting meet results, student powerlifting database"
+	/>
+
+	<!-- Open Graph -->
+	<meta property="og:title" content={title} />
+	<meta
+		property="og:description"
+		content="Submit your powerlifting records and compete with collegiate athletes nationwide. Track squat, bench, deadlift PRs on the premier university strength platform."
+	/>
+	<meta property="og:type" content="website" />
+
+	<!-- Twitter -->
+	<meta name="twitter:title" content={title} />
+	<meta
+		name="twitter:description"
+		content="Submit your powerlifting records and compete with collegiate athletes nationwide."
+	/>
 </svelte:head>
 
 {#if $user}
