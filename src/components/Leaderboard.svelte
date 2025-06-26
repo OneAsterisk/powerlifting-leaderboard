@@ -162,12 +162,13 @@
 								: column.key === 'selectedUniversity'
 									? 'university-cell'
 									: ''}
-							class="header-cell {column.key === 'displayName' ||
-							column.key === 'selectedUniversity'
+							class="header-cell {column.key === 'displayName'
 								? 'priority-high'
-								: column.key === 'dotsScore' || column.key === 'total'
-									? 'priority-medium'
-									: 'priority-low'}"
+								: column.key === 'selectedUniversity'
+									? 'priority-low'
+									: column.key === 'dotsScore' || column.key === 'total'
+										? 'priority-medium'
+										: 'priority-low'}"
 						>
 							{#if column.numeric}
 								<IconButton class="material-icons">arrow_upward</IconButton>
@@ -194,12 +195,13 @@
 							<Cell
 								numeric={column.numeric}
 								id={column.key === 'displayName' ? lift[column.key] : ''}
-								class="data-cell {column.key === 'displayName' ||
-								column.key === 'selectedUniversity'
+								class="data-cell {column.key === 'displayName'
 									? 'priority-high'
-									: column.key === 'dotsScore' || column.key === 'total'
-										? 'priority-medium'
-										: 'priority-low'}"
+									: column.key === 'selectedUniversity'
+										? 'priority-low'
+										: column.key === 'dotsScore' || column.key === 'total'
+											? 'priority-medium'
+											: 'priority-low'}"
 							>
 								{#if column.key === 'displayName'}
 									{#await loadUserName(lift[column.key])}
@@ -358,14 +360,14 @@
 	/* Link Styles */
 	.name-link,
 	.university-link {
-		color: #4fc3f7;
+		color: #ffffff;
 		text-decoration: none;
 		transition: color 0.2s ease;
 	}
 
 	.name-link:hover,
 	.university-link:hover {
-		color: #29b6f6;
+		color: #f0f0f0;
 		text-decoration: underline;
 	}
 
