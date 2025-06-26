@@ -355,7 +355,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		min-width: 100px;
+		min-width: 120px;
 		background-color: #0761c7;
 		color: white;
 		border: none;
@@ -363,6 +363,10 @@
 		font-size: 0.9rem;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
+		text-align: center;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	:global(.form-input) {
@@ -498,7 +502,7 @@
 		}
 
 		:global(.custom-label) {
-			min-width: 85px;
+			min-width: 100px;
 			font-size: 0.8rem;
 			padding: 0.625rem 0.75rem;
 		}
@@ -548,7 +552,7 @@
 		}
 
 		:global(.custom-label) {
-			min-width: 75px;
+			min-width: 90px;
 			font-size: 0.75rem;
 			padding: 0.5rem 0.625rem;
 		}
@@ -589,7 +593,7 @@
 		}
 
 		:global(.custom-label) {
-			min-width: 70px;
+			min-width: 80px;
 			font-size: 0.7rem;
 		}
 
