@@ -137,7 +137,9 @@
 </script>
 
 <div class="leaderboard-container">
-	<h1>{university ? `${university} Leaderboard` : 'Global Leaderboard'}</h1>
+	<h1 class="leaderboard-title">
+		{university ? `${university} Leaderboard` : 'Global Leaderboard'}
+	</h1>
 
 	<div class="table-wrapper">
 		<DataTable
@@ -146,6 +148,7 @@
 			bind:sortDirection
 			on:SMUIDataTable:sorted={handleSort}
 			table$aria-label="Powerlifting Leaderboard"
+			class="responsive-table"
 		>
 			<Head>
 				<Row>
@@ -159,6 +162,12 @@
 								: column.key === 'selectedUniversity'
 									? 'university-cell'
 									: ''}
+							class="header-cell {column.key === 'displayName' ||
+							column.key === 'selectedUniversity'
+								? 'priority-high'
+								: column.key === 'dotsScore' || column.key === 'total'
+									? 'priority-medium'
+									: 'priority-low'}"
 						>
 							{#if column.numeric}
 								<IconButton class="material-icons">arrow_upward</IconButton>
@@ -180,30 +189,47 @@
 
 			<Body>
 				{#each paginatedLifts as lift (lift.rank)}
-					<Row>
+					<Row class="data-row">
 						{#each columns as column}
 							<Cell
 								numeric={column.numeric}
 								id={column.key === 'displayName' ? lift[column.key] : ''}
+								class="data-cell {column.key === 'displayName' ||
+								column.key === 'selectedUniversity'
+									? 'priority-high'
+									: column.key === 'dotsScore' || column.key === 'total'
+										? 'priority-medium'
+										: 'priority-low'}"
 							>
 								{#if column.key === 'displayName'}
 									{#await loadUserName(lift[column.key])}
-										<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a>
+										<a href={`/profile/${lift.displayName}`} class="name-link">{lift[column.key]}</a
+										>
 									{:then userName}
 										{#if userName !== ''}
-											<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a> ({userName})
+											<a href={`/profile/${lift.displayName}`} class="name-link">
+												<span class="display-name">{lift[column.key]}</span>
+												<span class="username">({userName})</span>
+											</a>
 										{:else}
-											<a href={`/profile/${lift.displayName}`}>{lift[column.key]}</a>
+											<a href={`/profile/${lift.displayName}`} class="name-link"
+												>{lift[column.key]}</a
+											>
 										{/if}
 									{/await}
 								{:else if column.key === 'selectedUniversity'}
-									<a href={`/uni/${getUniversityUrlSlug(lift[column.key])}`}
-										>{getUniversityDisplayName(lift[column.key])}</a
+									<a
+										href={`/uni/${getUniversityUrlSlug(lift[column.key])}`}
+										class="university-link"
 									>
+										{getUniversityDisplayName(lift[column.key])}
+									</a>
 								{:else if column.key === 'bodyWeight' || column.key === 'total' || column.key === 'squat' || column.key === 'bench' || column.key === 'deadlift'}
-									{!lift[column.key]
-										? 'N/A'
-										: convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
+									<span class="weight-value">
+										{!lift[column.key]
+											? 'N/A'
+											: convertWeight(lift[column.key], $weightUnit) + ' ' + $weightUnit}
+									</span>
 								{:else}
 									{lift[column.key]}
 								{/if}
@@ -212,10 +238,10 @@
 					</Row>
 				{/each}
 			</Body>
-			<Pagination slot="paginate">
+			<Pagination slot="paginate" class="responsive-pagination">
 				<svelte:fragment slot="rowsPerPage">
-					<Label>Rows Per Page</Label>
-					<Select variant="outlined" bind:value={rowsPerPage} noLabel>
+					<Label class="pagination-label">Rows Per Page</Label>
+					<Select variant="outlined" bind:value={rowsPerPage} noLabel class="rows-select">
 						<Option value={10}>10</Option>
 						<Option value={25}>25</Option>
 						<Option value={50}>50</Option>
@@ -223,11 +249,11 @@
 				</svelte:fragment>
 
 				<svelte:fragment slot="total">
-					{start + 1}-{end} of {topLifts.length}
+					<span class="pagination-info">{start + 1}-{end} of {topLifts.length}</span>
 				</svelte:fragment>
 
 				<IconButton
-					class="material-icons"
+					class="material-icons pagination-btn"
 					action="first-page"
 					title="First page"
 					on:click={() => (currentPage = 0)}
@@ -235,7 +261,7 @@
 				>
 
 				<IconButton
-					class="material-icons"
+					class="material-icons pagination-btn"
 					action="prev-page"
 					title="Prev page"
 					on:click={() => currentPage--}
@@ -243,7 +269,7 @@
 				>
 
 				<IconButton
-					class="material-icons"
+					class="material-icons pagination-btn"
 					action="next-page"
 					title="Next page"
 					on:click={() => currentPage++}
@@ -251,7 +277,7 @@
 				>
 
 				<IconButton
-					class="material-icons"
+					class="material-icons pagination-btn"
 					action="last-page"
 					title="Last page"
 					on:click={() => (currentPage = lastPage)}
@@ -263,81 +289,296 @@
 </div>
 
 <style>
-	a {
-		color: aliceblue;
-	}
-
+	/* Container and Layout */
 	.leaderboard-container {
 		width: 100%;
 		max-width: 100%;
 		margin: 0 auto;
-		overflow-x: hidden; /* Prevent horizontal scroll on container */
+		overflow: hidden;
+	}
+
+	.leaderboard-title {
+		margin-bottom: 1.5rem;
+		text-align: center;
+		font-weight: 600;
 	}
 
 	.table-wrapper {
 		width: 100%;
-		border-radius: 5px;
-		overflow-x: auto; /* Enable horizontal scroll only for table */
-		-webkit-overflow-scrolling: touch;
+		border-radius: 8px;
+		overflow: hidden;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		background-color: #1a1a1a;
 	}
 
-	h1 {
-		margin-bottom: 20px;
-		text-align: center;
-	}
-
+	/* Table Base Styles */
 	:global(.mdc-data-table) {
-		width: 100%; /* Changed from 95% */
-		min-width: max-content; /* Ensure table doesn't shrink below content width */
-		border: 1px solid #5b5656;
-		border-radius: 4px;
-		font-size: 0.735rem;
+		width: 100%;
+		min-width: 100%;
+		border: 1px solid #404040;
+		border-radius: 8px;
+		font-size: 0.875rem;
+		background-color: #1a1a1a;
 	}
 
+	/* Header Styles */
 	:global(.mdc-data-table__header-cell) {
-		font-weight: bold;
+		font-weight: 600;
 		text-transform: uppercase;
 		background-color: #0761c7;
-		font-size: 1.125rem;
 		color: aliceblue;
-		white-space: nowrap; /* Prevent header text from wrapping */
+		white-space: nowrap;
+		padding: 16px 12px;
+		font-size: 0.8rem;
+		border-bottom: 2px solid #0550a3;
 	}
 
+	/* Cell Base Styles */
 	:global(.mdc-data-table__cell) {
-		width: auto; /* Changed from 1px */
-		min-width: max-content; /* Ensure cells don't shrink below content */
-		padding: 12px 16px;
+		padding: 14px 12px;
 		color: aliceblue;
-		white-space: nowrap; /* Prevent cell content from wrapping */
+		white-space: nowrap;
+		border-bottom: 1px solid #333;
+		vertical-align: middle;
 	}
 
+	/* Row Styles */
+	:global(.mdc-data-table__row) {
+		transition: background-color 0.2s ease;
+	}
+
+	:global(.mdc-data-table__row:hover) {
+		background-color: rgba(7, 97, 199, 0.1);
+	}
+
+	:global(.mdc-data-table__row:nth-child(even)) {
+		background-color: rgba(255, 255, 255, 0.02);
+	}
+
+	/* Link Styles */
+	.name-link,
+	.university-link {
+		color: #4fc3f7;
+		text-decoration: none;
+		transition: color 0.2s ease;
+	}
+
+	.name-link:hover,
+	.university-link:hover {
+		color: #29b6f6;
+		text-decoration: underline;
+	}
+
+	.display-name {
+		font-weight: 500;
+	}
+
+	.username {
+		font-size: 0.85em;
+		opacity: 0.8;
+		margin-left: 0.25rem;
+	}
+
+	.weight-value {
+		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Material Icons */
 	:global(.material-icons) {
 		font-size: 18px;
 		vertical-align: middle;
 		margin-left: 4px;
 	}
 
-	:global(.mdc-data-table::-webkit-scrollbar-thumb) {
+	/* Pagination Styles */
+	:global(.responsive-pagination) {
+		background-color: #1a1a1a;
+		padding: 1rem;
+		border-top: 1px solid #333;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 1rem;
+	}
+
+	.pagination-label {
+		color: aliceblue;
+		font-size: 0.875rem;
+		margin-right: 0.5rem;
+	}
+
+	.pagination-info {
+		color: aliceblue;
+		font-size: 0.875rem;
+	}
+
+	:global(.rows-select) {
+		min-width: 80px;
+	}
+
+	:global(.pagination-btn) {
+		color: aliceblue;
+		padding: 8px;
+	}
+
+	:global(.pagination-btn:disabled) {
+		opacity: 0.5;
+	}
+
+	/* Scrollbar Styling */
+	.table-wrapper::-webkit-scrollbar {
+		height: 8px;
+	}
+
+	.table-wrapper::-webkit-scrollbar-track {
+		background: #2a2a2a;
+		border-radius: 4px;
+	}
+
+	.table-wrapper::-webkit-scrollbar-thumb {
 		background: #0761c7;
-		border-radius: 6px;
+		border-radius: 4px;
+	}
+
+	.table-wrapper::-webkit-scrollbar-thumb:hover {
+		background: #0550a3;
+	}
+
+	/* Mobile Responsive Styles */
+	@media (max-width: 1200px) {
+		:global(.priority-low) {
+			display: none;
+		}
+	}
+
+	@media (max-width: 992px) {
+		.table-wrapper {
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+		}
+
+		:global(.mdc-data-table) {
+			min-width: 800px;
+		}
 	}
 
 	@media (max-width: 768px) {
-		.leaderboard-container {
-			font-size: 0.6rem;
+		.leaderboard-title {
+			font-size: 1.5rem;
+			margin-bottom: 1rem;
 		}
+
+		:global(.priority-medium) {
+			display: none;
+		}
+
+		:global(.mdc-data-table) {
+			min-width: 500px;
+			font-size: 0.8rem;
+		}
+
 		:global(.mdc-data-table__header-cell),
 		:global(.mdc-data-table__cell) {
-			padding: 8px;
+			padding: 12px 8px;
 		}
+
 		:global(.mdc-data-table__header-cell) {
+			font-size: 0.75rem;
+		}
+
+		.username {
+			display: block;
+			margin-left: 0;
+			margin-top: 0.2rem;
+			font-size: 0.75em;
+		}
+
+		:global(.responsive-pagination) {
+			padding: 0.75rem;
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0.75rem;
+		}
+
+		.pagination-label,
+		.pagination-info {
 			font-size: 0.8rem;
 		}
 	}
 
-	@media (min-width: 769px) and (max-width: 1200px) {
-		.leaderboard-container {
-			font-size: 0.8rem;
+	@media (max-width: 576px) {
+		.leaderboard-title {
+			font-size: 1.375rem;
+			margin-bottom: 0.875rem;
+		}
+
+		:global(.mdc-data-table) {
+			min-width: 400px;
+			font-size: 0.75rem;
+		}
+
+		:global(.mdc-data-table__header-cell),
+		:global(.mdc-data-table__cell) {
+			padding: 10px 6px;
+		}
+
+		:global(.mdc-data-table__header-cell) {
+			font-size: 0.7rem;
+		}
+
+		:global(.material-icons) {
+			font-size: 16px;
+		}
+
+		:global(.responsive-pagination) {
+			padding: 0.5rem;
+		}
+
+		:global(.pagination-btn) {
+			padding: 6px;
+		}
+	}
+
+	@media (max-width: 400px) {
+		.leaderboard-title {
+			font-size: 1.25rem;
+		}
+
+		:global(.mdc-data-table) {
+			min-width: 350px;
+		}
+
+		:global(.mdc-data-table__header-cell),
+		:global(.mdc-data-table__cell) {
+			padding: 8px 4px;
+		}
+	}
+
+	/* Priority system for columns */
+	@media (max-width: 1200px) {
+		:global(.header-cell.priority-low),
+		:global(.data-cell.priority-low) {
+			display: none;
+		}
+	}
+
+	@media (max-width: 768px) {
+		:global(.header-cell.priority-medium),
+		:global(.data-cell.priority-medium) {
+			display: none;
+		}
+	}
+
+	/* Improve touch targets on mobile */
+	@media (max-width: 768px) {
+		.name-link,
+		.university-link {
+			display: inline-block;
+			min-height: 44px;
+			line-height: 1.3;
+			padding: 0.25rem 0;
 		}
 	}
 </style>
