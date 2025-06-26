@@ -81,7 +81,7 @@
 		<div class="mobile-menu-content">
 			<!-- Mobile Controls -->
 			<div class="mobile-controls">
-				<div class="mobile-control">
+				<div class="mobile-control" style="display: flex; align-items: left; gap: 1rem">
 					<span class="control-label">Weight Unit:</span>
 					<WeightTypeSelector />
 				</div>
@@ -93,30 +93,17 @@
 
 			<!-- Mobile Navigation Links -->
 			<nav class="mobile-nav">
-				<a href="/" class="mobile-link" on:click={closeMenu}>
-					<span class="link-icon">🏠</span>
-					Home
-				</a>
-				<a href="/submit" class="mobile-link" on:click={closeMenu}>
-					<span class="link-icon">📝</span>
-					Submit Lifts
-				</a>
-				<a href="/faq" class="mobile-link" on:click={closeMenu}>
-					<span class="link-icon">❓</span>
-					FAQ
-				</a>
+				<a href="/" class="mobile-link" on:click={closeMenu}> Home </a>
+				<a href="/submit" class="mobile-link" on:click={closeMenu}> Submit Lifts </a>
+				<a href="/faq" class="mobile-link" on:click={closeMenu}> FAQ </a>
 				<a href="/profile" class="mobile-link" on:click={closeMenu}>
-					<span class="link-icon">👤</span>
 					{#if $user}
 						Profile
 					{:else}
 						Sign In
 					{/if}
 				</a>
-				<a href="/feedback" class="mobile-link" on:click={closeMenu}>
-					<span class="link-icon">💬</span>
-					Feedback
-				</a>
+				<a href="/feedback" class="mobile-link" on:click={closeMenu}> Feedback </a>
 			</nav>
 		</div>
 	</div>
