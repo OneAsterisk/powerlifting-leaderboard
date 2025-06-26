@@ -564,6 +564,10 @@
 			margin-bottom: 1rem;
 		}
 
+		.form-section:not(:last-child) {
+			margin-bottom: 1.5rem;
+		}
+
 		.section-title {
 			font-size: 0.95rem;
 			margin-bottom: 0.875rem;
@@ -586,10 +590,12 @@
 
 		.university-wrapper {
 			padding: 0.5rem 0.75rem;
+			margin-bottom: 0.75rem;
 		}
 
 		.radio-container {
 			padding: 0.75rem;
+			margin-bottom: 0.75rem;
 		}
 
 		.radio-label {
