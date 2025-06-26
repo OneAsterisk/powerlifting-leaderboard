@@ -466,6 +466,10 @@
 			font-size: 1.1rem;
 			margin-bottom: 1.25rem;
 		}
+
+		.form-col {
+			margin-bottom: 1.75rem;
+		}
 	}
 
 	@media (max-width: 768px) {
@@ -498,7 +502,11 @@
 		}
 
 		.form-col {
-			margin-bottom: 1.25rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.form-group-mobile {
+			margin-bottom: 0.75rem;
 		}
 
 		:global(.custom-label) {
@@ -514,10 +522,12 @@
 
 		.university-wrapper {
 			padding: 0.625rem 0.875rem;
+			margin-bottom: 0.75rem;
 		}
 
 		.radio-container {
 			padding: 0.875rem;
+			margin-bottom: 0.75rem;
 		}
 
 		.radio-options {
