@@ -46,6 +46,7 @@
 		width: 100%;
 		max-width: 100%;
 		margin: 0 auto;
+		margin-bottom: 2rem;
 
 		/* Mobile-first padding */
 		padding: 1rem 0.75rem;
