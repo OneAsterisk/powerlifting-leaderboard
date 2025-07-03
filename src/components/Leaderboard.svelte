@@ -300,9 +300,10 @@
 	/* Container and Layout */
 	.leaderboard-container {
 		width: 100%;
-		max-width: 100%;
+		max-width: none;
 		margin: 0 auto;
 		overflow: hidden;
+		padding: 0 1rem;
 	}
 
 	.leaderboard-title {
@@ -325,8 +326,9 @@
 		min-width: 100%;
 		border: 1px solid #404040;
 		border-radius: 8px;
-		font-size: 0.875rem;
+		font-size: 0.75rem;
 		background-color: #1a1a1a;
+		table-layout: auto;
 	}
 
 	/* Header Styles */
@@ -336,18 +338,21 @@
 		background-color: #0761c7;
 		color: aliceblue;
 		white-space: nowrap;
-		padding: 16px 12px;
-		font-size: 0.8rem;
+		padding: 8px 6px;
+		font-size: 0.65rem;
 		border-bottom: 2px solid #0550a3;
+		width: auto;
 	}
 
 	/* Cell Base Styles */
 	:global(.mdc-data-table__cell) {
-		padding: 14px 12px;
+		padding: 6px 6px;
 		color: aliceblue;
 		white-space: nowrap;
 		border-bottom: 1px solid #333;
 		vertical-align: middle;
+		width: auto;
+		font-size: 0.7rem;
 	}
 
 	/* Row Styles */
@@ -390,6 +395,52 @@
 	.weight-value {
 		font-weight: 500;
 		font-variant-numeric: tabular-nums;
+	}
+
+	/* Specific column width optimizations */
+	:global(.mdc-data-table__cell:nth-child(1)),
+	:global(.mdc-data-table__header-cell:nth-child(1)) {
+		/* Rank column */
+		width: 40px;
+		max-width: 40px;
+	}
+
+	:global(.mdc-data-table__cell:nth-child(2)),
+	:global(.mdc-data-table__header-cell:nth-child(2)) {
+		/* Name column */
+		min-width: 120px;
+		max-width: 180px;
+	}
+
+	:global(.mdc-data-table__cell:nth-child(3)),
+	:global(.mdc-data-table__header-cell:nth-child(3)) {
+		/* University column */
+		min-width: 150px;
+		max-width: 200px;
+		white-space: normal;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	:global(.mdc-data-table__cell:nth-child(4)),
+	:global(.mdc-data-table__header-cell:nth-child(4)),
+	:global(.mdc-data-table__cell:nth-child(5)),
+	:global(.mdc-data-table__header-cell:nth-child(5)),
+	:global(.mdc-data-table__cell:nth-child(6)),
+	:global(.mdc-data-table__header-cell:nth-child(6)),
+	:global(.mdc-data-table__cell:nth-child(7)),
+	:global(.mdc-data-table__header-cell:nth-child(7)),
+	:global(.mdc-data-table__cell:nth-child(8)),
+	:global(.mdc-data-table__header-cell:nth-child(8)),
+	:global(.mdc-data-table__cell:nth-child(9)),
+	:global(.mdc-data-table__header-cell:nth-child(9)),
+	:global(.mdc-data-table__cell:nth-child(10)),
+	:global(.mdc-data-table__header-cell:nth-child(10)),
+	:global(.mdc-data-table__cell:nth-child(11)),
+	:global(.mdc-data-table__header-cell:nth-child(11)) {
+		/* Numeric columns */
+		width: 60px;
+		max-width: 80px;
 	}
 
 	/* Material Icons */
@@ -455,12 +506,6 @@
 	}
 
 	/* Mobile Responsive Styles */
-	@media (max-width: 1200px) {
-		:global(.priority-low) {
-			display: none;
-		}
-	}
-
 	@media (max-width: 992px) {
 		.table-wrapper {
 			overflow-x: auto;
@@ -468,7 +513,7 @@
 		}
 
 		:global(.mdc-data-table) {
-			min-width: 800px;
+			min-width: 1200px;
 		}
 	}
 
@@ -478,29 +523,34 @@
 			margin-bottom: 1rem;
 		}
 
-		:global(.priority-medium) {
+		/* Hide only the least important columns on very small screens */
+		:global(.priority-low) {
 			display: none;
 		}
 
 		:global(.mdc-data-table) {
-			min-width: 500px;
-			font-size: 0.8rem;
+			min-width: 1000px;
+			font-size: 0.65rem;
 		}
 
 		:global(.mdc-data-table__header-cell),
 		:global(.mdc-data-table__cell) {
-			padding: 12px 8px;
+			padding: 4px 4px;
 		}
 
 		:global(.mdc-data-table__header-cell) {
-			font-size: 0.75rem;
+			font-size: 0.6rem;
+		}
+
+		:global(.mdc-data-table__cell) {
+			font-size: 0.6rem;
 		}
 
 		.username {
 			display: block;
 			margin-left: 0;
-			margin-top: 0.2rem;
-			font-size: 0.75em;
+			margin-top: 0.1rem;
+			font-size: 0.65em;
 		}
 
 		:global(.responsive-pagination) {
@@ -512,7 +562,7 @@
 
 		.pagination-label,
 		.pagination-info {
-			font-size: 0.8rem;
+			font-size: 0.7rem;
 		}
 	}
 
@@ -522,22 +572,31 @@
 			margin-bottom: 0.875rem;
 		}
 
+		/* Hide medium priority columns on very small screens */
+		:global(.priority-medium) {
+			display: none;
+		}
+
 		:global(.mdc-data-table) {
-			min-width: 400px;
-			font-size: 0.75rem;
+			min-width: 800px;
+			font-size: 0.6rem;
 		}
 
 		:global(.mdc-data-table__header-cell),
 		:global(.mdc-data-table__cell) {
-			padding: 10px 6px;
+			padding: 3px 3px;
 		}
 
 		:global(.mdc-data-table__header-cell) {
-			font-size: 0.7rem;
+			font-size: 0.55rem;
+		}
+
+		:global(.mdc-data-table__cell) {
+			font-size: 0.55rem;
 		}
 
 		:global(.material-icons) {
-			font-size: 16px;
+			font-size: 14px;
 		}
 
 		:global(.responsive-pagination) {
@@ -545,7 +604,7 @@
 		}
 
 		:global(.pagination-btn) {
-			padding: 6px;
+			padding: 4px;
 		}
 	}
 
@@ -555,24 +614,32 @@
 		}
 
 		:global(.mdc-data-table) {
-			min-width: 350px;
+			min-width: 700px;
 		}
 
 		:global(.mdc-data-table__header-cell),
 		:global(.mdc-data-table__cell) {
-			padding: 8px 4px;
+			padding: 2px 2px;
+		}
+
+		:global(.mdc-data-table__header-cell) {
+			font-size: 0.5rem;
+		}
+
+		:global(.mdc-data-table__cell) {
+			font-size: 0.5rem;
 		}
 	}
 
-	/* Priority system for columns */
-	@media (max-width: 1200px) {
+	/* Priority system for columns - Updated for wider table */
+	@media (max-width: 768px) {
 		:global(.header-cell.priority-low),
 		:global(.data-cell.priority-low) {
 			display: none;
 		}
 	}
 
-	@media (max-width: 768px) {
+	@media (max-width: 576px) {
 		:global(.header-cell.priority-medium),
 		:global(.data-cell.priority-medium) {
 			display: none;
@@ -584,9 +651,9 @@
 		.name-link,
 		.university-link {
 			display: inline-block;
-			min-height: 44px;
-			line-height: 1.3;
-			padding: 0.25rem 0;
+			min-height: 32px;
+			line-height: 1.2;
+			padding: 0.15rem 0;
 		}
 	}
 </style>
