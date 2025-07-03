@@ -58,6 +58,17 @@
 		newUUID = uuidv4();
 		event.preventDefault();
 
+		// Validate required fields
+		if (!liftType) {
+			alert('Please select a lift type (Comp Lift or Gym Lift).');
+			return;
+		}
+
+		if (!selectedUniversity) {
+			alert('Please select your university.');
+			return;
+		}
+
 		const parsedSquat = parseFloat(squat) || 0;
 		const parsedBench = parseFloat(bench) || 0;
 		const parsedDeadlift = parseFloat(deadlift) || 0;
@@ -261,7 +272,7 @@
 							<div class="radio-container">
 								<span class="radio-label">Lift Type:</span>
 								<div class="radio-options">
-									{#each ['Comp Lift', 'Gym Lift'] as value}
+									{#each ['Comp Lift', 'Gym Lift'] as value, index}
 										<div class="radio-option">
 											<Input
 												type="radio"
@@ -269,6 +280,7 @@
 												{value}
 												label={value}
 												class="radio-input"
+												required={index === 0}
 											/>
 										</div>
 									{/each}
