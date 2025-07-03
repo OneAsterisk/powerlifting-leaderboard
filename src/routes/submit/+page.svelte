@@ -375,11 +375,21 @@
 	}
 
 	.form-col {
-		margin-bottom: 1.5rem;
+		margin-bottom: 2rem;
 	}
 
 	.form-group-mobile {
 		margin-bottom: 0;
+	}
+
+	/* Enhanced spacing for personal information items */
+	.form-section .form-col {
+		margin-bottom: 2rem;
+		padding-bottom: 0.5rem;
+	}
+
+	.form-section .form-row .form-col:not(:last-child) {
+		margin-bottom: 2.5rem;
 	}
 
 	/* Input Group Styles */
@@ -511,7 +521,12 @@
 		}
 
 		.form-col {
-			margin-bottom: 1.75rem;
+			margin-bottom: 2.25rem;
+		}
+
+		.form-section .form-col {
+			margin-bottom: 2.5rem;
+			padding-bottom: 0.75rem;
 		}
 	}
 
@@ -549,7 +564,12 @@
 		}
 
 		.form-col {
-			margin-bottom: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.form-section .form-col {
+			margin-bottom: 2.25rem;
+			padding-bottom: 0.5rem;
 		}
 
 		.form-group-mobile {
@@ -609,7 +629,12 @@
 		}
 
 		.form-col {
-			margin-bottom: 1rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.form-section .form-col {
+			margin-bottom: 2rem;
+			padding-bottom: 0.25rem;
 		}
 
 		:global(.custom-label) {
