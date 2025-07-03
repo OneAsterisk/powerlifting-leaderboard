@@ -20,10 +20,37 @@
 			if (!response.ok) {
 				throw new Error('Failed to fetch data from server');
 			}
-			universities = await response.json();
-			filteredUniversities = universities;
+			const data = await response.json();
+			if (Array.isArray(data)) {
+				universities = data;
+				filteredUniversities = universities;
+			} else {
+				console.warn('University API returned unexpected format, using fallback list');
+				// Fallback to common universities if API fails
+				universities = [
+					'University of Michigan',
+					'Michigan State University',
+					'University of California, Berkeley',
+					'Stanford University',
+					'Harvard University',
+					'Massachusetts Institute of Technology',
+					'Other'
+				];
+				filteredUniversities = universities;
+			}
 		} catch (error) {
 			console.error('Error fetching universities:', error);
+			// Fallback to common universities if API fails
+			universities = [
+				'University of Michigan',
+				'Michigan State University',
+				'University of California, Berkeley',
+				'Stanford University',
+				'Harvard University',
+				'Massachusetts Institute of Technology',
+				'Other'
+			];
+			filteredUniversities = universities;
 		} finally {
 			isLoading = false;
 		}

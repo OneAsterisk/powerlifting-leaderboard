@@ -17,6 +17,7 @@ export interface Lift {
 	userId: string;
 	liftUID: string;
 	liftID?: string; //Legacy field
+	id?: string; // Document ID from Firestore
 	liftType: string;
 	bodyWeight: number;
 }

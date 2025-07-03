@@ -51,13 +51,15 @@
 		event.preventDefault();
 		if ($user) {
 			try {
-				const liftId = lift.liftUID || lift.liftID;
+				// Use document ID first, then fallback to liftUID, then liftID
+				const liftId = lift.id || lift.liftUID || lift.liftID;
 				if (!liftId) {
-					throw new Error('No lift ID found');
+					console.error('Lift object:', lift);
+					throw new Error('No lift ID found in lift object');
 				}
 				await deleteLift($user, liftId);
 				dispatch('liftDeleted');
-				toggle(); // Actually call the toggle function to close the modal
+				toggle();
 			} catch (error) {
 				console.error('Error deleting lift:', error);
 				alert('Error deleting lift. Please try again.');
@@ -92,9 +94,11 @@
 					liftType,
 					selectedUniversity
 				};
-				const liftId = lift.liftUID || lift.liftID;
+				// Use document ID first, then fallback to liftUID, then liftID
+				const liftId = lift.id || lift.liftUID || lift.liftID;
 				if (!liftId) {
-					throw new Error('No lift ID found');
+					console.error('Lift object:', lift);
+					throw new Error('No lift ID found in lift object');
 				}
 				await updateLift($user, liftId, updatedLift);
 				dispatch('liftUpdated');
@@ -107,7 +111,7 @@
 	};
 </script>
 
-<Modal isOpen={open} class="edit-modal" size="lg">
+<Modal isOpen={open} class="edit-modal" size="xl">
 	<ModalHeader class="edit-modal-header">
 		<h4 class="modal-title">Edit Lift ({$weightUnit})</h4>
 	</ModalHeader>
@@ -310,7 +314,8 @@
 
 	:global(.edit-modal-body) {
 		background-color: #1a1a1a;
-		padding: 1.5rem;
+		padding: 2.5rem;
+		min-height: 400px;
 	}
 
 	/* Form Layout */
@@ -321,9 +326,10 @@
 	.form-section {
 		background-color: rgba(255, 255, 255, 0.03);
 		border-radius: 12px;
-		padding: 1.5rem;
-		margin-bottom: 1.5rem;
+		padding: 2rem;
+		margin-bottom: 2rem;
 		border: 1px solid rgba(255, 255, 255, 0.1);
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	}
 
 	.section-title {
@@ -341,7 +347,7 @@
 	}
 
 	.form-col {
-		margin-bottom: 1rem;
+		margin-bottom: 1.5rem;
 	}
 
 	.form-group-mobile {
@@ -352,7 +358,24 @@
 	.input-group-mobile {
 		border-radius: 8px;
 		overflow: hidden;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		box-shadow:
+			0 4px 8px rgba(0, 0, 0, 0.15),
+			0 2px 4px rgba(0, 0, 0, 0.1);
+		transition: all 0.2s ease;
+	}
+
+	.input-group-mobile:hover {
+		box-shadow:
+			0 6px 12px rgba(0, 0, 0, 0.2),
+			0 3px 6px rgba(0, 0, 0, 0.15);
+		transform: translateY(-1px);
+	}
+
+	.input-group-mobile:focus-within {
+		box-shadow:
+			0 6px 12px rgba(79, 195, 247, 0.3),
+			0 3px 6px rgba(79, 195, 247, 0.2);
+		transform: translateY(-1px);
 	}
 
 	:global(.custom-label) {
@@ -394,16 +417,36 @@
 	.university-wrapper {
 		background-color: #2a2a2a;
 		border-radius: 8px;
-		padding: 0.75rem 1rem;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		padding: 1rem 1.25rem;
+		box-shadow:
+			0 4px 8px rgba(0, 0, 0, 0.15),
+			0 2px 4px rgba(0, 0, 0, 0.1);
+		transition: all 0.2s ease;
+	}
+
+	.university-wrapper:hover {
+		box-shadow:
+			0 6px 12px rgba(0, 0, 0, 0.2),
+			0 3px 6px rgba(0, 0, 0, 0.15);
+		transform: translateY(-1px);
 	}
 
 	/* Radio Container */
 	.radio-container {
 		background-color: #2a2a2a;
 		border-radius: 8px;
-		padding: 1rem;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		padding: 1.25rem;
+		box-shadow:
+			0 4px 8px rgba(0, 0, 0, 0.15),
+			0 2px 4px rgba(0, 0, 0, 0.1);
+		transition: all 0.2s ease;
+	}
+
+	.radio-container:hover {
+		box-shadow:
+			0 6px 12px rgba(0, 0, 0, 0.2),
+			0 3px 6px rgba(0, 0, 0, 0.15);
+		transform: translateY(-1px);
 	}
 
 	.radio-label {
