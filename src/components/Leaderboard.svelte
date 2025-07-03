@@ -326,7 +326,7 @@
 		min-width: 100%;
 		border: 1px solid #404040;
 		border-radius: 8px;
-		font-size: 0.75rem;
+		font-size: 1.25rem;
 		background-color: #1a1a1a;
 		table-layout: auto;
 	}
