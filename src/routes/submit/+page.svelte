@@ -384,12 +384,17 @@
 
 	/* Enhanced spacing for personal information items */
 	.form-section .form-col {
-		margin-bottom: 2rem;
-		padding-bottom: 0.5rem;
+		margin-bottom: 3rem;
+		padding-bottom: 1rem;
 	}
 
-	.form-section .form-row .form-col:not(:last-child) {
-		margin-bottom: 2.5rem;
+	/* Specific spacing for personal information section */
+	.form-section .form-row {
+		row-gap: 2rem;
+	}
+
+	.form-section .form-row .form-col {
+		margin-bottom: 3.5rem;
 	}
 
 	/* Input Group Styles */
@@ -521,12 +526,16 @@
 		}
 
 		.form-col {
-			margin-bottom: 2.25rem;
+			margin-bottom: 2.75rem;
 		}
 
 		.form-section .form-col {
-			margin-bottom: 2.5rem;
-			padding-bottom: 0.75rem;
+			margin-bottom: 3rem;
+			padding-bottom: 1rem;
+		}
+
+		.form-section .form-row .form-col {
+			margin-bottom: 3.25rem;
 		}
 	}
 
@@ -564,12 +573,16 @@
 		}
 
 		.form-col {
-			margin-bottom: 2rem;
+			margin-bottom: 2.5rem;
 		}
 
 		.form-section .form-col {
-			margin-bottom: 2.25rem;
-			padding-bottom: 0.5rem;
+			margin-bottom: 2.75rem;
+			padding-bottom: 0.75rem;
+		}
+
+		.form-section .form-row .form-col {
+			margin-bottom: 3rem;
 		}
 
 		.form-group-mobile {
@@ -629,12 +642,16 @@
 		}
 
 		.form-col {
-			margin-bottom: 1.5rem;
+			margin-bottom: 2rem;
 		}
 
 		.form-section .form-col {
-			margin-bottom: 2rem;
-			padding-bottom: 0.25rem;
+			margin-bottom: 2.5rem;
+			padding-bottom: 0.5rem;
+		}
+
+		.form-section .form-row .form-col {
+			margin-bottom: 2.75rem;
 		}
 
 		:global(.custom-label) {
