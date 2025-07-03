@@ -123,7 +123,7 @@
 				<Row class="form-row">
 					<Col xs={12} md={4} class="form-col">
 						<FormGroup class="form-group-mobile">
-							<InputGroup class="input-group-mobile">
+							<InputGroup class="input-group-mobile" style="margin-bottom: 10px;">
 								<InputGroupText class="custom-label">Squat</InputGroupText>
 								<Input
 									type="text"
@@ -139,7 +139,7 @@
 					</Col>
 					<Col xs={12} md={4} class="form-col">
 						<FormGroup class="form-group-mobile">
-							<InputGroup class="input-group-mobile">
+							<InputGroup class="input-group-mobile" style="margin-bottom: 10px;">
 								<InputGroupText class="custom-label">Bench</InputGroupText>
 								<Input
 									type="text"
@@ -155,7 +155,7 @@
 					</Col>
 					<Col xs={12} md={4} class="form-col">
 						<FormGroup class="form-group-mobile">
-							<InputGroup class="input-group-mobile">
+							<InputGroup class="input-group-mobile" style="margin-bottom: 10px;">
 								<InputGroupText class="custom-label">Deadlift</InputGroupText>
 								<Input
 									type="text"
@@ -178,7 +178,7 @@
 				<Row class="form-row">
 					<Col xs={12} md={6} class="form-col">
 						<FormGroup class="form-group-mobile">
-							<InputGroup class="input-group-mobile">
+							<InputGroup class="input-group-mobile" style="margin-bottom: 10px;">
 								<InputGroupText class="custom-label">Gender</InputGroupText>
 								<Input
 									type="select"
@@ -195,7 +195,7 @@
 					</Col>
 					<Col xs={12} md={6} class="form-col">
 						<FormGroup class="form-group-mobile">
-							<InputGroup class="input-group-mobile">
+							<InputGroup class="input-group-mobile" style="margin-bottom: 10px;">
 								<InputGroupText class="custom-label">Age</InputGroupText>
 								<Input
 									type="number"
@@ -243,7 +243,7 @@
 						</FormGroup>
 					</Col>
 					<Col xs={12} lg={6} class="form-col">
-						<FormGroup class="form-group-mobile">
+						<FormGroup class="form-group-mobile" style="margin-top: 10px;">
 							<div class="radio-container">
 								<span class="radio-label">Lift Type:</span>
 								<div class="radio-options">
