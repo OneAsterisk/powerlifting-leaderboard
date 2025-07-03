@@ -299,15 +299,13 @@
 <style>
 	/* Container and Layout */
 	.leaderboard-container {
-		width: 100%;
-		max-width: none;
-		margin: 0 auto;
+		width: 95%;
+		margin: 20px auto;
 		overflow: hidden;
-		padding: 0 1rem;
 	}
 
 	.leaderboard-title {
-		margin-bottom: 1.5rem;
+		margin-bottom: 1.25rem;
 		text-align: center;
 		font-weight: 600;
 	}
@@ -326,9 +324,8 @@
 		min-width: 100%;
 		border: 1px solid #404040;
 		border-radius: 8px;
-		font-size: 1.25rem;
+		font-size: 0.85rem;
 		background-color: #1a1a1a;
-		table-layout: auto;
 	}
 
 	/* Header Styles */
@@ -338,21 +335,18 @@
 		background-color: #0761c7;
 		color: aliceblue;
 		white-space: nowrap;
-		padding: 8px 6px;
-		font-size: 0.65rem;
+		padding: 12px 10px;
+		font-size: 0.75rem;
 		border-bottom: 2px solid #0550a3;
-		width: auto;
 	}
 
 	/* Cell Base Styles */
 	:global(.mdc-data-table__cell) {
-		padding: 6px 6px;
+		padding: 10px;
 		color: aliceblue;
 		white-space: nowrap;
 		border-bottom: 1px solid #333;
 		vertical-align: middle;
-		width: auto;
-		font-size: 0.7rem;
 	}
 
 	/* Row Styles */
@@ -397,55 +391,9 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	/* Specific column width optimizations */
-	:global(.mdc-data-table__cell:nth-child(1)),
-	:global(.mdc-data-table__header-cell:nth-child(1)) {
-		/* Rank column */
-		width: 40px;
-		max-width: 40px;
-	}
-
-	:global(.mdc-data-table__cell:nth-child(2)),
-	:global(.mdc-data-table__header-cell:nth-child(2)) {
-		/* Name column */
-		min-width: 120px;
-		max-width: 180px;
-	}
-
-	:global(.mdc-data-table__cell:nth-child(3)),
-	:global(.mdc-data-table__header-cell:nth-child(3)) {
-		/* University column */
-		min-width: 150px;
-		max-width: 200px;
-		white-space: normal;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	:global(.mdc-data-table__cell:nth-child(4)),
-	:global(.mdc-data-table__header-cell:nth-child(4)),
-	:global(.mdc-data-table__cell:nth-child(5)),
-	:global(.mdc-data-table__header-cell:nth-child(5)),
-	:global(.mdc-data-table__cell:nth-child(6)),
-	:global(.mdc-data-table__header-cell:nth-child(6)),
-	:global(.mdc-data-table__cell:nth-child(7)),
-	:global(.mdc-data-table__header-cell:nth-child(7)),
-	:global(.mdc-data-table__cell:nth-child(8)),
-	:global(.mdc-data-table__header-cell:nth-child(8)),
-	:global(.mdc-data-table__cell:nth-child(9)),
-	:global(.mdc-data-table__header-cell:nth-child(9)),
-	:global(.mdc-data-table__cell:nth-child(10)),
-	:global(.mdc-data-table__header-cell:nth-child(10)),
-	:global(.mdc-data-table__cell:nth-child(11)),
-	:global(.mdc-data-table__header-cell:nth-child(11)) {
-		/* Numeric columns */
-		width: 60px;
-		max-width: 80px;
-	}
-
 	/* Material Icons */
 	:global(.material-icons) {
-		font-size: 18px;
+		font-size: 16px;
 		vertical-align: middle;
 		margin-left: 4px;
 	}
@@ -453,24 +401,24 @@
 	/* Pagination Styles */
 	:global(.responsive-pagination) {
 		background-color: #1a1a1a;
-		padding: 1rem;
+		padding: 0.75rem;
 		border-top: 1px solid #333;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		flex-wrap: wrap;
-		gap: 1rem;
+		gap: 0.75rem;
 	}
 
 	.pagination-label {
 		color: aliceblue;
-		font-size: 0.875rem;
+		font-size: 0.825rem;
 		margin-right: 0.5rem;
 	}
 
 	.pagination-info {
 		color: aliceblue;
-		font-size: 0.875rem;
+		font-size: 0.825rem;
 	}
 
 	:global(.rows-select) {
@@ -479,7 +427,7 @@
 
 	:global(.pagination-btn) {
 		color: aliceblue;
-		padding: 8px;
+		padding: 6px;
 	}
 
 	:global(.pagination-btn:disabled) {
@@ -505,7 +453,14 @@
 		background: #0550a3;
 	}
 
-	/* Mobile Responsive Styles */
+	/* Priority system for columns */
+	@media (max-width: 1100px) {
+		:global(.header-cell.priority-low),
+		:global(.data-cell.priority-low) {
+			display: none;
+		}
+	}
+
 	@media (max-width: 992px) {
 		.table-wrapper {
 			overflow-x: auto;
@@ -513,7 +468,7 @@
 		}
 
 		:global(.mdc-data-table) {
-			min-width: 1200px;
+			min-width: 800px;
 		}
 	}
 
@@ -523,46 +478,51 @@
 			margin-bottom: 1rem;
 		}
 
-		/* Hide only the least important columns on very small screens */
-		:global(.priority-low) {
+		:global(.header-cell.priority-medium),
+		:global(.data-cell.priority-medium) {
 			display: none;
 		}
 
 		:global(.mdc-data-table) {
-			min-width: 1000px;
-			font-size: 0.65rem;
+			min-width: 500px;
+			font-size: 0.8rem;
+		}
+
+		:global(.mdc-data-table__header-cell) {
+			font-size: 0.7rem;
 		}
 
 		:global(.mdc-data-table__header-cell),
 		:global(.mdc-data-table__cell) {
-			padding: 4px 4px;
-		}
-
-		:global(.mdc-data-table__header-cell) {
-			font-size: 0.6rem;
-		}
-
-		:global(.mdc-data-table__cell) {
-			font-size: 0.6rem;
+			padding: 10px 8px;
 		}
 
 		.username {
 			display: block;
 			margin-left: 0;
-			margin-top: 0.1rem;
-			font-size: 0.65em;
+			margin-top: 0.2rem;
+			font-size: 0.75em;
 		}
 
 		:global(.responsive-pagination) {
-			padding: 0.75rem;
+			padding: 0.5rem;
 			flex-direction: column;
 			align-items: stretch;
-			gap: 0.75rem;
+			gap: 0.5rem;
 		}
 
 		.pagination-label,
 		.pagination-info {
-			font-size: 0.7rem;
+			font-size: 0.75rem;
+		}
+
+		/* Improve touch targets on mobile */
+		.name-link,
+		.university-link {
+			display: inline-block;
+			min-height: 44px;
+			line-height: 1.3;
+			padding: 0.25rem 0;
 		}
 	}
 
@@ -572,27 +532,18 @@
 			margin-bottom: 0.875rem;
 		}
 
-		/* Hide medium priority columns on very small screens */
-		:global(.priority-medium) {
-			display: none;
+		:global(.mdc-data-table) {
+			min-width: 400px;
+			font-size: 0.75rem;
 		}
 
-		:global(.mdc-data-table) {
-			min-width: 800px;
-			font-size: 0.6rem;
+		:global(.mdc-data-table__header-cell) {
+			font-size: 0.65rem;
 		}
 
 		:global(.mdc-data-table__header-cell),
 		:global(.mdc-data-table__cell) {
-			padding: 3px 3px;
-		}
-
-		:global(.mdc-data-table__header-cell) {
-			font-size: 0.55rem;
-		}
-
-		:global(.mdc-data-table__cell) {
-			font-size: 0.55rem;
+			padding: 8px 6px;
 		}
 
 		:global(.material-icons) {
@@ -614,46 +565,12 @@
 		}
 
 		:global(.mdc-data-table) {
-			min-width: 700px;
+			min-width: 320px;
 		}
 
 		:global(.mdc-data-table__header-cell),
 		:global(.mdc-data-table__cell) {
-			padding: 2px 2px;
-		}
-
-		:global(.mdc-data-table__header-cell) {
-			font-size: 0.5rem;
-		}
-
-		:global(.mdc-data-table__cell) {
-			font-size: 0.5rem;
-		}
-	}
-
-	/* Priority system for columns - Updated for wider table */
-	@media (max-width: 768px) {
-		:global(.header-cell.priority-low),
-		:global(.data-cell.priority-low) {
-			display: none;
-		}
-	}
-
-	@media (max-width: 576px) {
-		:global(.header-cell.priority-medium),
-		:global(.data-cell.priority-medium) {
-			display: none;
-		}
-	}
-
-	/* Improve touch targets on mobile */
-	@media (max-width: 768px) {
-		.name-link,
-		.university-link {
-			display: inline-block;
-			min-height: 32px;
-			line-height: 1.2;
-			padding: 0.15rem 0;
+			padding: 6px 4px;
 		}
 	}
 </style>
