@@ -4,6 +4,7 @@
 	import '../lib/styles/global.scss';
 	import Footer from '../components/Footer.svelte';
 	import SearchBar from '../components/SearchBar.svelte';
+	import { page } from '$app/stores';
 </script>
 
 <Theme theme="dark">
@@ -11,7 +12,10 @@
 		<header class="header-container">
 			<Navbar />
 		</header>
-		<main class="main-content">
+		<main
+			class="main-content"
+			class:wide={$page.route.id === '/' || $page.route.id === '/uni/[selectedUniversity]'}
+		>
 			<slot />
 		</main>
 		<Footer />
@@ -82,6 +86,12 @@
 		/* Very small devices */
 		@media (max-width: 380px) {
 			padding: 0.75rem 0.25rem;
+		}
+	}
+
+	.main-content.wide {
+		@media (min-width: 1200px) {
+			max-width: none;
 		}
 	}
 
